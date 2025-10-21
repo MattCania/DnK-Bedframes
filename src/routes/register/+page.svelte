@@ -1,6 +1,4 @@
 <script lang="ts">
-	import LandingHeader from '../../components/LandingHeader.svelte';
-	import Footer from '../../components/Footer.svelte';
 	import { Card, Button, Label, Input, Checkbox, Radio } from 'flowbite-svelte';
 
 	let formData = {

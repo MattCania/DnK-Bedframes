@@ -1,5 +1,4 @@
 <script lang="ts">
-	import LandingHeader from '../../components/LandingHeader.svelte';
 	import { Card, Button, Label, Input, Checkbox, Heading, P } from 'flowbite-svelte';
 	import { signIn } from '@auth/sveltekit/client';
 	import { ArrowRightOutline } from 'flowbite-svelte-icons';

@@ -2,9 +2,9 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import LandingHeader from '../components/LandingHeader.svelte';
-	import SubHeader from '../components/SubHeader.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
+	console.log(data)
 </script>
 
 <svelte:head>
@@ -12,6 +12,6 @@
 </svelte:head>
 
 <section class="flex flex-col h-screen w-full">
-<LandingHeader fixed={true}/>
+<LandingHeader user={data.session?.user}/>
 	{@render children?.()}
 </section>
