@@ -17,7 +17,7 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
     signOut: '/'
   },
   callbacks: {
-    async signIn ({ user, account, profile }) {
+    async signIn ({ user, account }) {
 
       if (!user || !account) {
         return false
@@ -40,6 +40,10 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
       console.log(`Signing in ${user.email}`)
 
       return true
+    },
+    async session({ session, token }) {
+      session.userId = token.sub?.toString() ?? "";
+      return session;
     }
   }
 });

@@ -1,46 +1,18 @@
 <script lang="ts">
-  import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from "flowbite-svelte";
-  export let fixed;
+  import { Navbar, NavBrand, NavLi, NavUl, NavHamburger, P } from "flowbite-svelte";
 </script>
 
-<Navbar class={`bg-zinc-800 ${fixed ? 'fixed' : ''} z-2`}>
+<Navbar breakpoint="lg" class="fixed bg-zinc-800 text-white">
   <NavBrand href="/">
-    <img
-      src="/logo.png"
-      class="bg-white me-3 h-8 sm:h-9 rounded-md"
-      alt="D&K Furnitures Logo"
-    />
-    <span class="self-center text-2xl text-white font-semibold whitespace-nowrap">
-      D&K Bedframes
-    </span>
+    <img src="/logo.png" class="me-3 h-6 sm:h-9" alt="D&K Bedframes Logo" />
+    <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">D&K Bedframes</span>
   </NavBrand>
-
-  <NavHamburger class="text-white hover:text-zinc-500" />
-
+  <NavHamburger />
   <NavUl>
-    <NavLi
-      class="mx-2 text-black md:text-white text-lg hover:!text-gray-400"
-      href="/#home"
-    >Home</NavLi>
-
-    <NavLi
-      class="mx-2 text-black md:text-white text-lg hover:!text-gray-400"
-      href="/#about"
-    >About</NavLi>
-
-    <NavLi
-      class="mx-2 text-black md:text-white text-lg hover:!text-gray-400"
-      href="/#contacts"
-    >Contact</NavLi>
-
-    <NavLi
-      class="w-full md:w-24 md:text-center bg-white text-zinc-800 text-lg hover:md:text-white mx-2"
-      href="/login"
-    >Log In</NavLi>
-
-    <NavLi
-      class="w-full md:w-24 md:text-center mx-2 text-black md:text-white text-lg hover:!text-gray-400"
-      href="/register"
-    >Register</NavLi>
+    <NavLi class="text-white" href="/">Home</NavLi>
+    <NavLi class="text-white" href="/about">About</NavLi>
+    <NavLi class="text-white" href="/contact">Contact</NavLi>
+    <NavLi class="text-white" href="/login">Login</NavLi>
+    <NavLi class="text-white" href="/register">Register</NavLi>
   </NavUl>
 </Navbar>

@@ -1,5 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+
+import type { DefaultSession } from "@auth/core/types";
 declare global {
 	namespace App {
 		// interface Error {}
@@ -10,4 +12,15 @@ declare global {
 	}
 }
 
+declare module "@auth/core/types" {
+  interface Session extends DefaultSession {
+    userId?: string;
+  }
+}
+
+declare module "@auth/sveltekit" {
+  interface Session extends DefaultSession {
+    userId?: string;
+  }
+}
 export {};
