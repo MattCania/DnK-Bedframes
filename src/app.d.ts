@@ -15,12 +15,44 @@ declare global {
 declare module "@auth/core/types" {
   interface Session extends DefaultSession {
     userId?: string;
+    role?: string;
+    fullname?: string;
+    contacts?: string | null;
+    birthday?: string | null;
+    address?: string | null;
+    gender?: string | null;
+  }
+
+  interface JWT {
+    userId?: string;
+    role?: string;
+    fullname?: string;
+    contacts?: string | null;
+    birthday?: string | null;
+    address?: string | null;
+    gender?: string | null;
   }
 }
 
 declare module "@auth/sveltekit" {
   interface Session extends DefaultSession {
     userId?: string;
+    role?: string;
+    fullname?: string;
+    contacts?: string | null;
+    birthday?: string | null;
+    address?: string | null;
+    gender?: string | null;
+  }
+
+  interface JWT {
+    userId?: string;
+    role?: string;
+    fullname?: string;
+    contacts?: string | null;
+    birthday?: string | null;
+    address?: string | null;
+    gender?: string | null;
   }
 }
 export {};

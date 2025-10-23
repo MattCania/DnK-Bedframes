@@ -2,9 +2,19 @@
 	import { Card, Button, Label, Input, Checkbox, Heading, P } from 'flowbite-svelte';
 	import { signIn } from '@auth/sveltekit/client';
 	import { ArrowRightOutline } from 'flowbite-svelte-icons';
+	import { redirect } from '@sveltejs/kit';
 
+	const handleSubmission = () => {
+
+	}
+	
+	const handleLogin = () => {
+		signIn('google')
+		redirect(200, '/')
+	}
+	
 	const formValues = {
-		email: '',
+		contact: '',
 		password: ''
 	};
 	let showPassword = false;
@@ -28,17 +38,18 @@
 	</section>
 
 	<Card class="mx-auto my-4 p-4 sm:mx-16 sm:p-6 md:my-auto md:p-8">
-		<form class="flex flex-col space-y-6" action="/">
+		<form class="flex flex-col space-y-6" method="POST">
 			<h3 class="mx-auto text-2xl font-medium text-gray-900 dark:text-white">Login</h3>
 			<Label class="space-y-2">
-				<span>Email</span>
-				<Input type="email" name="email" placeholder="name@company.com" required />
+				<span>Contact/Email:</span>
+				<Input type="text" name="user" bind:value={formValues.contact} placeholder="+639123456789 | user@gmail.com" required />
 			</Label>
 			<Label class="space-y-2">
 				<span>Your password</span>
 				<Input
 					type={showPassword ? 'text' : 'password'}
 					name="password"
+					bind:value={formValues.password}
 					placeholder="•••••"
 					required
 				/>
@@ -53,7 +64,7 @@
 			</div>
 			<Button type="submit" class="w-full">Login to your account</Button>
 			<Button
-				onclick={() => signIn('google')}
+				onclick={handleLogin}
 				type="button"
 				class="w-full bg-red-500 hover:bg-red-600"
 			>

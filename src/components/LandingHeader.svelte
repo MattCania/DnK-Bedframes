@@ -36,7 +36,7 @@
 				<NavLi class="md:text-white" href="/register">Register</NavLi>
 			{/if}
 		</NavUl>
-		<ShoppingBagSolid id="cart-drop" class="shrink-0 h-10 w-10 text-white" />
+		<ShoppingBagSolid id="cart-drop" class="mx-8 shrink-0 h-10 w-10 text-white" />
 		<Dropdown class="w-128" triggeredBy="#cart-drop">
 			<DropdownGroup>
 				<DropdownItem>Product</DropdownItem>
@@ -60,7 +60,7 @@
 					<DropdownItem href="/settings">Settings</DropdownItem>
 				</DropdownGroup>
 				<DropdownGroup>
-					<DropdownItem onclick={() => signOut()}>Sign out</DropdownItem>
+					<DropdownItem class="text-start w-full" onclick={() => signOut()}>Sign out</DropdownItem>
 				</DropdownGroup>
 			</Dropdown>
 		{/if}

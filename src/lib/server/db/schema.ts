@@ -23,7 +23,8 @@ export const test = pgTable("Test", {
 
 export const accounts = pgTable("accounts", {
   account_id: serial("account_id").primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).unique(),
+  password: varchar("password", {length: 255}),
   role: roleEnum("role").notNull(),
   provider: text("provider").notNull(),
   provider_id: text("provider_id").notNull(),
@@ -36,11 +37,11 @@ export const profile = pgTable("profile", {
   firstname: varchar("firstname", { length: 255 }).notNull(),
   middlename: varchar("middlename", { length: 255 }),
   lastname: varchar("lastname", { length: 255 }).notNull(),
-  contacts: varchar("contacts", { length: 255 }).notNull(),
-  birthday: varchar("birthday", { length: 255 }).notNull(),
-  address: text("address").notNull(),
-  gender: genderEnum("gender").notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
+  contacts: varchar("contacts", { length: 255 }),
+  birthday: varchar("birthday", { length: 255 }),
+  address: text("address"),
+  gender: genderEnum("gender"),
+  created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
   account_id: integer("account_id").notNull().unique().references(() => accounts.account_id),
 });
