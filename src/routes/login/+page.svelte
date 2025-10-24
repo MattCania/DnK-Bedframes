@@ -3,21 +3,16 @@
 	import { signIn } from '@auth/sveltekit/client';
 	import { ArrowRightOutline } from 'flowbite-svelte-icons';
 	import { redirect } from '@sveltejs/kit';
-
-	const handleSubmission = () => {
-
-	}
-	
-	const handleLogin = () => {
-		signIn('google')
-		redirect(200, '/')
-	}
-	
+	import { goto } from '$app/navigation';
 	const formValues = {
 		contact: '',
 		password: ''
 	};
 	let showPassword = false;
+
+	const handleSubmission = () => {
+
+	}
 </script>
 
 <section class="pt-32 lg:pt-24 flex h-full flex-col items-center justify-center gap-0 bg-zinc-100 lg:flex-row">
@@ -64,7 +59,7 @@
 			</div>
 			<Button type="submit" class="w-full">Login to your account</Button>
 			<Button
-				onclick={handleLogin}
+				onclick={() => signIn("google")}
 				type="button"
 				class="w-full bg-red-500 hover:bg-red-600"
 			>

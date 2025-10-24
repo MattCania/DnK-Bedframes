@@ -13,3 +13,12 @@ export interface RegisterDto {
 	gender?: "male" | "female" | null;
 }
 
+export type Session = {
+    userId?: string;
+    role?: string;
+    fullname?: string;
+    contacts?: string | null;
+    birthday?: string | null;
+    address?: string | null;
+    gender?: string | null;
+}

@@ -35,7 +35,7 @@
 	}
 </script>
 
-<section class="mx-auto my-4 mt-28 flex h-screen w-full pb-20">
+<section class="mx-auto my-4 mt-28 flex flex-col lg:flex-row h-screen w-full pb-20">
 	{#if step === 1}
 	<section class="my-auto mr-0 ml-auto flex h-100 w-100 flex-col">
 		<img src="/logo.png" alt="" />
