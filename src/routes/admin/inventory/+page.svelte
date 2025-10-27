@@ -1,5 +1,9 @@
 <script lang="ts">
+	import InventoryHeader from "../../../components/InventoryHeader.svelte";
+
+
 
 </script>
 
-<h1>Admin Page</h1>
+<InventoryHeader/>
+<h1>Shit</h1>

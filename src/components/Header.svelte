@@ -15,7 +15,7 @@
 	} from 'flowbite-svelte';
 	export let session;
 	const user = session?.user
-	console.log("User", user)
+	// console.log("User", user)
 </script>
 
 <Navbar breakpoint="lg" class="fixed z-50 w-full bg-zinc-800 ">
