@@ -1,6 +1,6 @@
 import type { RegisterDto } from "$lib/data/interfaces";
 import { db } from "$lib/server/db";
-import { accounts, profile } from "$lib/server/db/schema";
+import { accounts } from "$lib/server/db/schema";
 import argon2 from "@node-rs/argon2";
 import { eq } from "drizzle-orm";
 
@@ -10,7 +10,7 @@ export const registerAccount = async (account_dto: RegisterDto) => {
 		password,
 		role,
 		provider,
-		profile_id,
+		provider_id,
 		firstname,
 		middlename,
 		lastname,
@@ -37,46 +37,34 @@ export const registerAccount = async (account_dto: RegisterDto) => {
 		hash = await argon2.hash(password);
 	}
 
-	const data = await db.transaction(async (tx) => {
-		const [account_response] = await tx
-			.insert(accounts)
-			.values({
-				email,
-				password: hash,
-				role,
-				provider,
-				provider_id: profile_id
-			})
-			.returning({
-				account_id: accounts.account_id,
-				email: accounts.email,
-				role: accounts.role
-			});
-
-		const [profile_response] = await tx
-			.insert(profile)
-			.values({
-				firstname,
-				middlename,
-				lastname,
-				contacts,
-				birthday,
-				address,
-				gender,
-				account_id: account_response.account_id
-			})
-			.returning({
-				firstname: profile.firstname,
-				middlename: profile.middlename,
-				lastname: profile.lastname,
-				contacts: profile.contacts,
-				birthday: profile.birthday,
-				address: profile.address,
-				gender: profile.gender
-			});
-
-		return { ...account_response, ...profile_response };
-	});
+	const [data] = await db
+		.insert(accounts)
+		.values({
+			email,
+			password: hash,
+			role,
+			provider,
+			provider_id,
+			firstname,
+			middlename,
+			lastname,
+			contacts,
+			birthday,
+			address,
+			gender
+		})
+		.returning({
+			id: accounts.id,
+			email: accounts.email,
+			role: accounts.role,
+			firstname: accounts.firstname,
+			middlename: accounts.middlename,
+			lastname: accounts.lastname,
+			contacts: accounts.contacts,
+			birthday: accounts.birthday,
+			address: accounts.address,
+			gender: accounts.gender
+		});
 
 	return {
 		exists: false,

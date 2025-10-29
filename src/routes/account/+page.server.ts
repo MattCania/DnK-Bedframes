@@ -5,7 +5,7 @@ export const load = async ({ locals }) => {
 
   if (!session) {
     console.log("No Session Found");
-	redirect(301, '/')
+	  redirect(301, '/')
   }
 
   return { session };

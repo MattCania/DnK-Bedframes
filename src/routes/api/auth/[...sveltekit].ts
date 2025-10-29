@@ -45,29 +45,26 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 
 		async jwt({ token, user }) {
 			if (user) {
-				await db.transaction(async (tx) => {
-					const acc = await tx.query.accounts.findFirst({
-						where: (a, { eq }) => eq(a.email, user.email ?? '')
-					});
-
-					if (!acc) return;
-
-					const prof = await tx.query.profile.findFirst({
-						where: (p, { eq }) => eq(p.account_id, acc.account_id)
-					});
-
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const t = token as any;
-
-					t.userId = acc.account_id;
-					t.email = acc.email;
-					t.role = acc.role ?? 'user';
-					t.fullname = `${prof?.firstname ?? ''} ${prof?.lastname ?? ''}`.trim();
-					t.contacts = prof?.contacts ?? null;
-					t.birthday = prof?.birthday ?? null;
-					t.address = prof?.address ?? null;
-					t.gender = prof?.gender ?? null;
+				const acc = await db.query.accounts.findFirst({
+					where: (a, { eq }) => eq(a.email, user.email ?? '')
 				});
+
+				if (!acc) return token;
+
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const t = token as any;
+
+				// All data is now in the accounts table
+				t.userId = acc.id;
+				t.email = acc.email;
+				t.role = acc.role ?? 'user';
+				t.firstname = acc.firstname ?? null;
+				t.middlename = acc.middlename ?? null;
+				t.lastname = acc.lastname ?? null;
+				t.contacts = acc.contacts ?? null;
+				t.birthday = acc.birthday ?? null;
+				t.address = acc.address ?? null;
+				t.gender = acc.gender ?? null;
 			}
 
 			return token;
@@ -81,7 +78,10 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 
 			s.userId = t.userId;
 			s.role = t.role;
-			s.fullname = t.fullname;
+
+			s.firstname = t.firstname ?? null;
+			s.middlename = t.middlename ?? null;
+			s.lastname = t.lastname ?? null;
 			s.contacts = t.contacts;
 			s.birthday = t.birthday;
 			s.address = t.address;

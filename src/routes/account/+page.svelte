@@ -55,6 +55,10 @@
 		profileData = { ...originalData };
 		editMode = false;
 	}
+
+	export let data;
+	const user = data.session
+	console.log(data)
 </script>
 
 <div class="bg-white min-h-screen">
@@ -86,7 +90,7 @@
 						Email
 					</label>
 					<div class="px-4 py-2 bg-gray-100 rounded-lg text-gray-700  ">
-						{accountData.email}
+						{user?.user?.email}
 					</div>
 				</div>
 

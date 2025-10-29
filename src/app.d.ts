@@ -16,7 +16,9 @@ declare module "@auth/core/types" {
   interface Session extends DefaultSession {
     userId?: string;
     role?: string;
-    fullname?: string;
+    firstname?: string;
+    middlename?: string;
+    lastname?: string;
     contacts?: string | null;
     birthday?: string | null;
     address?: string | null;
@@ -26,7 +28,9 @@ declare module "@auth/core/types" {
   interface JWT {
     userId?: string;
     role?: string;
-    fullname?: string;
+    firstname?: string;
+    middlename?: string;
+    lastname?: string;
     contacts?: string | null;
     birthday?: string | null;
     address?: string | null;
@@ -38,7 +42,9 @@ declare module "@auth/sveltekit" {
   interface Session extends DefaultSession {
     userId?: string;
     role?: string;
-    fullname?: string;
+    firstname?: string;
+    middlename?: string;
+    lastname?: string;
     contacts?: string | null;
     birthday?: string | null;
     address?: string | null;
@@ -48,7 +54,9 @@ declare module "@auth/sveltekit" {
   interface JWT {
     userId?: string;
     role?: string;
-    fullname?: string;
+    firstname?: string;
+    middlename?: string;
+    lastname?: string;
     contacts?: string | null;
     birthday?: string | null;
     address?: string | null;

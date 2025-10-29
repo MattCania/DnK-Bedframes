@@ -22,3 +22,12 @@ export type Session = {
     address?: string | null;
     gender?: string | null;
 }
+
+export type ProductDto = {
+	product_name: string;
+	product_description: string;
+	product_stock: number;
+	product_price: number | string;
+	product_colors: [] | string;
+	product_image: string 
+}

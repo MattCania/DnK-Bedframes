@@ -46,7 +46,7 @@
   }
 </style>
 
-<div class="flex relative">
+<div class="relative">
   
   <SidebarButton onclick={demoSidebarUi.toggle} class="mb-2" />
   <Sidebar 
@@ -55,7 +55,6 @@
   isOpen={isDemoOpen} 
   closeSidebar={closeDemoSidebar} 
   params={{ x: -50, duration: 50 }} 
-  position="absolute" 
   classes={{ nonactive: "p-2", active: "p-2 bg-zinc-700" }} 
   class="z-50 h-full sidebar-zinc bg-zinc-700 border-0 p-0"
   >
