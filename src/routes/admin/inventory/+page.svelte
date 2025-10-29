@@ -44,7 +44,7 @@
 	});
 </script>
 
-<form class="ml-64 w-full bg-white p-8" method="POST">
+<form class="ml-64 w-full bg-white p-8" method="POST" enctype="multipart/form-data">
 	<div class="mb-6 grid gap-6 md:grid-cols-2">
 		<div>
 			<Label for="product_image" class="mb-2">Product Image</Label>

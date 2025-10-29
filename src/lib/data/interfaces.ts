@@ -29,5 +29,6 @@ export type ProductDto = {
 	product_stock: number;
 	product_price: number | string;
 	product_colors: [] | string;
-	product_image: string 
+	product_category: 'twin' | 'full' | 'queen' | 'king'
+	product_image: string
 }
