@@ -132,8 +132,8 @@
 </script>
 
 <section class="flex flex-col gap-4 bg-gray-100 py-4 pt-24">
-	<Heading class="mx-auto my-2 py-4 text-center text-4xl">Popular Products</Heading>
-	<div class="flex w-full flex-col items-center justify-center gap-4 md:flex-row">
+	<!-- <Heading class="mx-auto my-2 py-4 text-center text-4xl">Popular Products</Heading> -->
+	<!-- <div class="flex w-full flex-col items-center justify-center gap-4 md:flex-row">
 		<Card class=" p-0">
 			<a href="/">
 				<img
@@ -209,7 +209,7 @@
 				</div>
 			</div>
 		</Card>
-	</div>
+	</div> -->
 	<div class="mx-auto h-auto max-w-7xl px-6">
 		<div class="rounded-2xl bg-gray-200 p-8">
 			<div class="mb-8 flex items-center gap-3">

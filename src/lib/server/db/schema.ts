@@ -72,7 +72,7 @@ export const product = pgTable('product', {
 	description: text('description'),
 	price: decimal('price').notNull(),
 	stock: integer('stock').notNull(),
-	image: bytea('image').notNull(),
+	image: bytea('image'),
 	category: categoryEnum('category').notNull(),
 	colors: text('colors')
 		.array()

@@ -1,35 +1,40 @@
-import type { ProductDto } from '$lib/data/interfaces.js';
 import { db } from '$lib/server/db';
 import { product } from '$lib/server/db/schema';
 import { json } from '@sveltejs/kit';
 
 export async function POST({ request }) {
-  const formData = await request.formData();
+	try {
+		const body = await request.json();
 
-  const file = formData.get('product_image') as File;
-  const product_name = formData.get('product_name') as string;
-  const product_description = formData.get('product_description') as string;
-  const product_stock = Number(formData.get('product_stock'));
-  const product_price = formData.get('product_price') as string; // Keep as string for decimal
-  const product_colors = formData.getAll('product_colors') as string[]; // Cast to string[]
-  const product_category = formData.get('product_category') as 'twin' | 'full' | 'queen' | 'king';
+		const {
+			product_name,
+			product_description,
+			product_stock,
+			product_price,
+			product_colors,
+			product_category,
+			product_image
+		} = body;
 
-  const buffer = file ? Buffer.from(await file.arrayBuffer()) : null;
+		let buffer: Buffer | null = null;
+		if (product_image && typeof product_image === 'string' && product_image.startsWith('data:image')) {
+			const base64 = product_image.split(',')[1];
+			buffer = Buffer.from(base64, 'base64');
+		}
 
-  // Add validation for required fields
-  if (!buffer) {
-    return json({ success: false, error: 'Image is required' }, { status: 400 });
-  }
+		await db.insert(product).values({
+			name: product_name,
+			description: product_description,
+			category: product_category,
+			stock: product_stock,
+			price: product_price,
+			image: buffer,
+			colors: product_colors
+		});
 
-  await db.insert(product).values({
-    name: product_name,
-    description: product_description,
-    category: product_category,
-    stock: product_stock,
-    price: product_price, // Now a string
-    image: buffer,
-    colors: product_colors // Now properly typed as string[]
-  });
-
-  return json({ success: true });
+		return json({ success: true, message: 'Product added successfully' });
+	} catch (error) {
+		console.error(error);
+		return json({ success: false, error: 'Failed to add product' }, { status: 500 });
+	}
 }

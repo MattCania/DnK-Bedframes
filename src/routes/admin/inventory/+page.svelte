@@ -51,6 +51,7 @@
 			<Input
 				type="file"
 				id="product_image"
+				name="product_image"
 				accept="image/*"
 				required
 				onchange={handleImageChange}
@@ -73,45 +74,41 @@
 				Category:
 				<Select
 					class="mt-2"
+					name="product_category"
 					items={categories}
 					bind:value={eventSelected}
 					clearable
-					onClear={() => {
-						alert('Clicked clear button!');
-					}}
-					onchange={() => {
-						console.log('Changed select value:');
-					}}
 				/>
 			</Label>
 		</div>
 
 		<div>
 			<Label for="product_name" class="mb-2">Product Name</Label>
-			<Input type="text" id="product_name" placeholder="Bedframe" required />
+			<Input type="text" id="product_name" name="product_name" placeholder="Bedframe" required />
 		</div>
 
 		<div>
 			<Label for="color" class="mb-2">Color</Label>
-			<Input type="text" id="company" placeholder="Black" required />
+			<Input type="text" id="color" name="product_colors" placeholder="Black" required />
 		</div>
 
 		<div>
 			<Label for="stock" class="mb-2">Stock</Label>
-			<Input type="number" id="company" placeholder="1" required />
+			<Input type="number" id="stock" name="product_stock" placeholder="1" required />
 		</div>
 
 		<div>
 			<Label for="price" class="mb-2">Price</Label>
-			<Input type="number" id="company" placeholder="1" required />
+			<Input type="number" id="price" name="product_price" placeholder="1" required />
 		</div>
+
 		<div>
-			<Label for="website" class="mb-2">Descriptions</Label>
+			<Label for="description" class="mb-2">Description</Label>
 			<Textarea
-				id="textarea-id"
+				id="description"
+				name="product_description"
 				placeholder="Your message"
 				rows={4}
-				name="message"
 				class="w-full"
 			/>
 		</div>
