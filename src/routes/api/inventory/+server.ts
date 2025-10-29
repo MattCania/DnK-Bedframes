@@ -17,9 +17,16 @@ export async function POST({ request }) {
 		} = body;
 
 		let buffer: Buffer | null = null;
-		if (product_image && typeof product_image === 'string' && product_image.startsWith('data:image')) {
-			const base64 = product_image.split(',')[1];
-			buffer = Buffer.from(base64, 'base64');
+
+		if (product_image && typeof product_image === 'string') {
+			let base64String = product_image.trim();
+
+			if (!base64String.startsWith('data:image')) {
+				base64String = `data:image/jpeg;base64,${base64String}`;
+			}
+
+			const base64Data = base64String.split(',')[1];
+			buffer = Buffer.from(base64Data, 'base64');
 		}
 
 		await db.insert(product).values({

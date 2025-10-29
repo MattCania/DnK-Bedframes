@@ -1,21 +1,13 @@
-<script>
+<script lang="ts">
 	import { Button, Input, Select, Rating } from 'flowbite-svelte';
 	import Footer from '../../../components/Footer.svelte';
-	
-	let quantity = 1;
-	let selectedColor = 'Black';
-	let selectedSize = 'Queen-Size';
+	export let data;
 
-	const product = {
-		name: "Modern Metal Bunk Bed - Twin Over Full",
-		price: 1240.00,
-		originalPrice: 2480.00,
-		rating: 4.8,
-		image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop",
-		description: "Upgrade your space with this sleek and durable Modern Metal Bunk Bed - Twin Over Full, designed to combine functionality and modern style. Perfect for shared rooms or maximizing space, it features a sturdy metal construction with a twin-size top bunk and a full size bottom bunk, offering ample sleeping space for two. Its modern design allows for safe access to the top bunk, while the minimalist design complements any bedroom decor. Ideal for homes, dorms, or rental spaces, this bunk bed is functional and easy to assemble.",
-		colors: ['Black', 'White', 'Gray'],
-		sizes: ['Twin-Size', 'Queen-Size', 'King-Size']
-	};
+	const product = data.product;
+
+	let quantity = 1;
+	let selectedColor = product.colors?.[0] || 'Black';
+	let selectedSize = product.sizes?.[0] || 'Queen-Size';
 
 	const reviews = [
 		{
@@ -23,14 +15,14 @@
 			author: "John R.",
 			rating: 4,
 			date: "June 12",
-			text: "Good bed frame for the price. It's spacious enough for my teenagers and looks modern. Took a bit longer to assemble than expected, but overall, very satisfied. Would recommend for families on a budget."
+			text: "Good bed frame for the price. It's spacious enough for my teenagers and looks modern."
 		},
 		{
 			id: 2,
 			author: "Carlo",
 			rating: 5,
 			date: "May 28",
-			text: "I'm very impressed with the sturdiness of this bunk bed! The metal frame feels durable and stable, even when both bunks are being used. Assembly was straightforward and the minimalist design matches perfectly with..."
+			text: "I'm very impressed with the sturdiness of this bunk bed!"
 		}
 	];
 
@@ -42,26 +34,16 @@
 		{ stars: 1, count: 5, percentage: 3 }
 	];
 
-	const colorOptions = product.colors.map(color => ({ value: color, name: color }));
-	const sizeOptions = product.sizes.map(size => ({ value: size, name: size }));
+	const colorOptions = product.colors.map(c => ({ value: c, name: c }));
+	const sizeOptions = product.sizes.map(s => ({ value: s, name: s }));
 
 	function handleAddToCart() {
-		console.log('Added to cart:', {
-			product: product.name,
-			quantity,
-			color: selectedColor,
-			size: selectedSize
-		});
+		console.log('Added to cart:', { product: product.name, quantity, color: selectedColor, size: selectedSize });
 		alert('Product added to cart!');
 	}
 
 	function handleBuyNow() {
-		console.log('Buy now:', {
-			product: product.name,
-			quantity,
-			color: selectedColor,
-			size: selectedSize
-		});
+		console.log('Buy now:', { product: product.name, quantity, color: selectedColor, size: selectedSize });
 		alert('Proceeding to checkout...');
 	}
 </script>
@@ -90,83 +72,54 @@
 
 			<!-- Right Side - Product Details -->
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-3">
-					{product.name}
-				</h1>
+				<h1 class="text-2xl font-bold text-gray-900 mb-3">{product.name}</h1>
 				
 				<div class="flex items-baseline gap-3 mb-4">
 					<span class="text-3xl font-bold text-green-600">
-						PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}+
+						PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
 					</span>
 					<span class="text-sm text-gray-500 line-through">
-						PHP {product.originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}+
+						PHP {product.originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
 					</span>
 				</div>
 
-				<!-- Color Selection -->
+				<!-- Color -->
 				<div class="mb-4">
-					<label for="color" class="block text-sm font-medium text-gray-700 mb-2">
-						Color
-					</label>
+					<label for="color" class="block text-sm font-medium text-gray-700 mb-2">Color</label>
 					<Select id="color" bind:value={selectedColor} items={colorOptions} class="w-full" />
 				</div>
 
 				<!-- Quantity -->
 				<div class="mb-4">
-					<label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
-						Quantity
-					</label>
-					<Input 
-						id="quantity"
-						type="number" 
-						min="1" 
-						bind:value={quantity}
-						class="w-full"
-					/>
+					<label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+					<Input id="quantity" type="number" min="1" bind:value={quantity} class="w-full" />
 				</div>
 
-				<!-- Size Selection -->
+				<!-- Size -->
 				<div class="mb-6">
-					<label for="size" class="block text-sm font-medium text-gray-700 mb-2">
-						Size
-					</label>
+					<label for="size" class="block text-sm font-medium text-gray-700 mb-2">Size</label>
 					<Select id="size" bind:value={selectedSize} items={sizeOptions} class="w-full" />
 				</div>
 
 				<!-- Buttons -->
 				<div class="space-y-3">
-					<Button 
-						onclick={handleAddToCart}
-						color="blue"
-						class="w-full"
-					>
-						Add to Cart
-					</Button>
-					<Button 
-						onclick={handleBuyNow}
-						color="green"
-						class="w-full"
-					>
-						Buy Now
-					</Button>
+					<Button on:click={handleAddToCart} color="blue" class="w-full">Add to Cart</Button>
+					<Button on:click={handleBuyNow} color="green" class="w-full">Buy Now</Button>
 				</div>
 			</div>
 		</div>
 
-		<!-- Description Section -->
-		<div class=" border-b-2  py-6 mb-8">
+		<!-- Description -->
+		<div class="border-b-2 py-6 mb-8">
 			<h2 class="text-lg font-bold text-gray-900 mb-3">Description:</h2>
-			<p class="text-sm text-gray-700 leading-relaxed">
-				{product.description}
-			</p>
+			<p class="text-sm text-gray-700 leading-relaxed">{product.description}</p>
 		</div>
 
-		<!-- Ratings Section -->
-		<div class="  pt-6">
+		<!-- Ratings -->
+		<div class="pt-6">
 			<h2 class="text-lg font-bold text-gray-900 mb-6">Ratings</h2>
 			
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-				<!-- Overall Rating -->
 				<div class="text-center">
 					<div class="text-5xl font-bold text-gray-900 mb-2">{product.rating}</div>
 					<Rating rating={Math.round(product.rating)} size={20} />
@@ -178,10 +131,7 @@
 							<span class="text-sm font-medium text-gray-700 w-3">{stat.stars}</span>
 							<span class="text-yellow-400 text-sm">⭐</span>
 							<div class="flex-grow bg-gray-200 rounded-full h-2 overflow-hidden">
-								<div 
-									class="bg-gray-800 h-full rounded-full"
-									style="width: {stat.percentage}%"
-								></div>
+								<div class="bg-gray-800 h-full rounded-full" style="width: {stat.percentage}%"></div>
 							</div>
 						</div>
 					{/each}
@@ -192,23 +142,17 @@
 				{#each reviews as review (review.id)}
 					<div class="border-b border-gray-200 pb-6">
 						<Rating rating={review.rating} size={16} class="mb-2" />
-						<p class="text-sm font-semibold text-gray-900 mb-1">
-							Reviewed by: {review.author}
-						</p>
+						<p class="text-sm font-semibold text-gray-900 mb-1">Reviewed by: {review.author}</p>
 						<p class="text-xs text-gray-500 mb-3">{review.date}</p>
-						<p class="text-sm text-gray-700 leading-relaxed">
-							{review.text}
-						</p>
+						<p class="text-sm text-gray-700 leading-relaxed">{review.text}</p>
 					</div>
 				{/each}
 			</div>
 
 			<div class="text-center mt-6">
-				<button class="text-gray-600 hover:text-gray-900 text-2xl font-bold">
-					•••
-				</button>
+				<button class="text-gray-600 hover:text-gray-900 text-2xl font-bold">•••</button>
 			</div>
 		</div>
 	</div>
-	<Footer/>
+	<Footer />
 </div>

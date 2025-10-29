@@ -1,32 +1,23 @@
+import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import { product } from '$lib/server/db/schema';
-import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	try {
-		// Get all products
-		const rows = await db.query.product.findMany();
+	const rows = await db.select().from(product);
 
-		if (!rows || rows.length === 0) throw new Error('No products found');
+	const products = rows.map((p) => ({
+		id: p.id,
+		product_name: p.name,
+		product_description: p.description,
+		product_price: parseFloat(p.price),
+		product_stock: p.stock,
+		product_colors: p.colors,
+		product_category: p.category,
+		image: p.image
+			? `data:image/jpeg;base64,${Buffer.from(p.image).toString('base64')}`
+			: null,
+		product_rating: 0
+	}));
 
-		// Convert all product images
-		const products = rows.map((p) => {
-			let imageBase64 = null;
-			if (p.image) {
-				const base64 = Buffer.from(p.image).toString('base64');
-				imageBase64 = `data:image/png;base64,${base64}`;
-			}
-			return {
-				...p,
-				image: imageBase64
-			};
-		});
-
-		return {
-			success: true,
-			data: products
-		};
-	} catch (err) {
-		return { success: false, error: String(err) };
-	}
+	return { products };
 };
