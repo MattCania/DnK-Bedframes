@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Heading, P, A } from 'flowbite-svelte';
+	import { Heading } from 'flowbite-svelte';
 	import Footer from '../../components/Footer.svelte';
 </script>
 

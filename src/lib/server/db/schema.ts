@@ -76,8 +76,7 @@ export const product = pgTable('product', {
 	category: categoryEnum('category').notNull(),
 	colors: text('colors')
 		.array()
-		.default(sql`ARRAY[]::text[]`),
-	category_id: integer('category_id').references(() => category.id)
+		.default(sql`ARRAY[]::text[]`)
 });
 
 export const order = pgTable('order', {
@@ -91,6 +90,9 @@ export const order = pgTable('order', {
 
 export const orderItem = pgTable('order_item', {
 	id: serial('id').primaryKey(),
+	colors: text('colors')
+		.array()
+		.default(sql`ARRAY[]::text[]`),
 	quantity: integer('quantity').notNull(),
 	price: decimal('price').notNull(),
 	order_id: integer('order_id')
@@ -106,8 +108,13 @@ export const cart = pgTable('cart', {
 	created_at: timestamp('created_at').defaultNow().notNull(),
 	account_id: integer('account_id')
 		.notNull()
-		.unique()
-		.references(() => accounts.id)
+		.references(() => accounts.id),
+	product_id: integer('product_id'),
+	colors: text('colors')
+		.array()
+		.default(sql`ARRAY[]::text[]`),
+	quantity: integer('quantity'),
+	category: categoryEnum('category').notNull(),
 });
 
 export const cartItem = pgTable('cart_item', {

@@ -92,9 +92,7 @@
 <section class="flex flex-col gap-4 bg-gray-100 py-4 pt-24">
 	<div class="mx-auto h-auto max-w-7xl px-6">
 		<div class="rounded-2xl bg-gray-200 p-8">
-			<!-- Filters -->
 			<div class="mb-8 flex items-center gap-3 flex-wrap">
-				<!-- Category Filter -->
 				<Button>
 					Categories<ChevronDownOutline class="ms-2 h-6 w-6 text-white dark:text-white" />
 				</Button>
@@ -104,7 +102,7 @@
 							All
 						</Checkbox>
 					</li>
-					{#each ['Twin', 'Twin XL', 'Full (Double)', 'Queen-Sized', 'King-Sized'] as cat}
+					{#each ['Twin', 'Full', 'Queen', 'King'] as cat}
 						<li class="rounded-sm p-2 hover:bg-gray-100">
 							<Checkbox
 								checked={selectedCategories.includes(cat)}
@@ -116,7 +114,6 @@
 					{/each}
 				</Dropdown>
 
-				<!-- Sorting -->
 				<Button>
 					Sort By<ChevronDownOutline class="ms-2 h-6 w-6 text-white dark:text-white" />
 				</Button>
@@ -139,7 +136,6 @@
 				</Dropdown>
 			</div>
 
-			<!-- Products Grid -->
 			<div
 				class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
 				in:fade
@@ -177,7 +173,6 @@
 				{/if}
 			</div>
 
-			<!-- Pagination -->
 			<div class="mt-8 text-center">
 				<Pagination
 					pages={[{ name: String(currentPage), href: '#', active: true }]}

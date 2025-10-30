@@ -14,8 +14,9 @@
 		DropdownHeader
 	} from 'flowbite-svelte';
 	export let session;
+	export let cart;
 	const user = session?.user
-	// console.log("User", user)
+		
 </script>
 
 <Navbar breakpoint="lg" class="fixed z-50 w-full bg-zinc-800 ">
