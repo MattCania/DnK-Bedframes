@@ -28,7 +28,6 @@
 		gender: account?.gender ?? ''
 	};
 
-	// Store original data for cancel functionality
 	let originalData = { ...profileData };
 
 	const roleOptions = [
@@ -40,7 +39,6 @@
 	const genderOptions = [
 		{ value: 'male', name: 'Male' },
 		{ value: 'female', name: 'Female' },
-		{ value: 'other', name: 'Other' },
 		{ value: 'prefer_not_to_say', name: 'Prefer not to say' }
 	];
 
@@ -49,11 +47,56 @@
 		originalData = { ...profileData };
 	}
 
-	function handleSave() {
-		// TODO: wire up update API to persist changes
-		console.log('Saving profile data:', profileData);
-		alert('Profile updated successfully!');
-		editMode = false;
+	let isSaving = false;
+	async function handleSave() {
+		if (isSaving) return;
+		isSaving = true;
+		try {
+			const payload = {
+				firstname: profileData.firstname?.trim(),
+				middlename: profileData.middlename?.trim() || null,
+				lastname: profileData.lastname?.trim(),
+				contacts: profileData.contacts?.trim() || null,
+				birthday: profileData.birthday || null,
+				address: profileData.address?.trim() || null,
+				gender:
+					profileData.gender === 'male' || profileData.gender === 'female'
+						? profileData.gender
+						: null
+			};
+
+			const res = await fetch('/api/account', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+
+			const data = await res.json();
+			if (!res.ok || !data?.success) {
+				throw new Error(data?.message || 'Failed to update profile');
+			}
+
+			// Sync local state from server response
+			const acc = data.account;
+			profileData = {
+				profile_id: acc.id,
+				firstname: acc.firstname ?? '',
+				middlename: acc.middlename ?? '',
+				lastname: acc.lastname ?? '',
+				contacts: acc.contacts ?? '',
+				birthday: acc.birthday ?? '',
+				address: acc.address ?? '',
+				gender: acc.gender ?? ''
+			};
+			originalData = { ...profileData };
+			editMode = false;
+			alert('Profile updated successfully!');
+		} catch (e) {
+			console.error(e);
+			alert(e?.message || 'An error occurred while updating profile');
+		} finally {
+			isSaving = false;
+		}
 	}
 
 	function handleCancel() {
@@ -246,7 +289,9 @@
 			<!-- Action Buttons (only shown in edit mode) -->
 			{#if editMode}
 				<div class="mt-6 flex gap-3">
-					<Button onclick={handleSave} color="green" class="flex-1">Save Changes</Button>
+					<Button onclick={handleSave} color="green" class="flex-1" disabled={isSaving}>
+						{isSaving ? 'Saving…' : 'Save Changes'}
+					</Button>
 					<Button onclick={handleCancel} color="light" class="flex-1">Cancel</Button>
 				</div>
 			{/if}
