@@ -93,7 +93,7 @@
 			alert('Profile updated successfully!');
 		} catch (e) {
 			console.error(e);
-			alert(e?.message || 'An error occurred while updating profile');
+			// alert(e?.message || 'An error occurred while updating profile');
 		} finally {
 			isSaving = false;
 		}
