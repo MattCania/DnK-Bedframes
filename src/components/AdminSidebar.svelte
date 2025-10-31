@@ -70,7 +70,12 @@
 				<SidebarItem href="/admin/orders" label="Orders" class="text-white hover:bg-zinc-600" />
 				<SidebarItem
 					href="/admin/inventory"
-					label="Inventory"
+					label="Inventory (Create)"
+					class="text-white hover:bg-zinc-600"
+				/>
+				<SidebarItem
+					href="/admin/catalog"
+					label="Catalog (Edit)"
 					class="text-white hover:bg-zinc-600"
 				/>
 			</SidebarDropdownWrapper>
