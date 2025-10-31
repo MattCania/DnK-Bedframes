@@ -10,32 +10,38 @@
 	};
 	let showPassword = false;
 
-	const handleSubmission = () => {
-
-	}
+	const handleSubmission = () => {};
 </script>
 
-<section class="pt-32 lg:pt-24 flex min-h-screen flex-col items-center justify-center w-full gap-0 bg-zinc-100 lg:flex-row">
-		<div class="my-0 flex h-1/2 w-auto flex-col text-center pl-32">
-			<Heading tag="h1" class="mb-4 text-4xl font-extrabold md:text-5xl lg:text-6xl">
-				Perfect for Families, Ideal for Small Spaces.
-			</Heading>
-			<P class="mb-6 text-lg sm:px-16 lg:text-xl xl:px-12 text-center w-full dark:text-gray-400">
-				Smart design, sturdy frame, and modern style, the bunk bed that saves space without
-				sacrificing comfort.
-			</P>
-			<Button class="mx-auto w-fit bg-zinc-800 hover:bg-zinc-500" href="/products">
-				Shop Now
-				<ArrowRightOutline class="ms-2 h-6 w-6" />
-			</Button>
-		</div>
+<section
+	class="flex min-h-screen w-full flex-col items-center justify-center gap-0 bg-zinc-100 pt-32 lg:flex-row lg:pt-24"
+>
+	<div class="my-0 flex h-1/2 w-auto flex-col pl-32 text-center">
+		<Heading tag="h1" class="mb-4 text-4xl font-extrabold md:text-5xl lg:text-6xl">
+			Perfect for Families, Ideal for Small Spaces.
+		</Heading>
+		<P class="mb-6 w-full text-center text-lg sm:px-16 lg:text-xl xl:px-12 dark:text-gray-400">
+			Smart design, sturdy frame, and modern style, the bunk bed that saves space without
+			sacrificing comfort.
+		</P>
+		<Button class="mx-auto w-fit bg-zinc-800 hover:bg-zinc-500" href="/products">
+			Shop Now
+			<ArrowRightOutline class="ms-2 h-6 w-6" />
+		</Button>
+	</div>
 
-	<Card class="mx-auto my-4 p-4 sm:mx-16 sm:p-6 md:my-auto md:p-8 md:mr-32">
+	<Card class="mx-auto my-4 p-4 sm:mx-16 sm:p-6 md:my-auto md:mr-32 md:p-8">
 		<form class="flex flex-col space-y-6" method="POST">
 			<h3 class="mx-auto text-2xl font-medium text-gray-900 dark:text-white">Login</h3>
 			<Label class="space-y-2">
 				<span>Contact/Email:</span>
-				<Input type="text" name="user" bind:value={formValues.contact} placeholder="+639123456789 | user@gmail.com" required />
+				<Input
+					type="text"
+					name="user"
+					bind:value={formValues.contact}
+					placeholder="+639123456789 | user@gmail.com"
+					required
+				/>
 			</Label>
 			<Label class="space-y-2">
 				<span>Your password</span>
@@ -57,7 +63,7 @@
 			</div>
 			<Button type="submit" class="w-full">Login to your account</Button>
 			<Button
-				onclick={() => signIn("google")}
+				onclick={() => signIn('google', { callbackUrl: '/?from=oauth' })}
 				type="button"
 				class="w-full bg-red-500 hover:bg-red-600"
 			>

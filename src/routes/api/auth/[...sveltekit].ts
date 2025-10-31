@@ -40,6 +40,9 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 				});
 			}
 
+			// Do not redirect here to avoid interfering with the OAuth flow.
+			// We'll handle admin redirection in the app layout after the session is established.
+
 			return true;
 		},
 
