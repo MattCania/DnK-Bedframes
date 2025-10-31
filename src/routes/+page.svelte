@@ -2,12 +2,16 @@
 	import { Card, Button, Rating, Badge, Dropdown, Checkbox, Pagination } from 'flowbite-svelte';
 	import Footer from '../components/Footer.svelte';
 	import { fade } from 'svelte/transition';
-	import { ChevronLeftOutline, ChevronRightOutline, ChevronDownOutline } from 'flowbite-svelte-icons';
+	import {
+		ChevronLeftOutline,
+		ChevronRightOutline,
+		ChevronDownOutline
+	} from 'flowbite-svelte-icons';
 
 	export let data;
-	let allProducts = data.products; // fetched from db
-	let filteredProducts = [...allProducts];
-	let displayedProducts = [];
+	let allProducts: any[] = data.products; // fetched from db
+	let filteredProducts: any[] = [...allProducts];
+	let displayedProducts: any[] = [];
 
 	// --- STATE ---
 	let sortOption = '';
@@ -22,18 +26,22 @@
 			selectedCategories = [];
 			filteredProducts = [...allProducts];
 		} else {
-			if (selectedCategories.includes(category)) {
-				selectedCategories = selectedCategories.filter((c) => c !== category);
+			const cat = category.toLowerCase();
+			if (selectedCategories.includes(cat)) {
+				selectedCategories = selectedCategories.filter((c) => c !== cat);
 			} else {
-				selectedCategories.push(category);
+				selectedCategories = [...selectedCategories, cat];
 			}
 			filteredProducts =
 				selectedCategories.length > 0
-					? allProducts.filter((p) => selectedCategories.includes(p.product_category))
+					? allProducts.filter((p) =>
+							selectedCategories.includes(String(p.product_category).toLowerCase())
+						)
 					: [...allProducts];
 		}
-		sortProducts(sortOption); // keep sort order when filtering
-		updatePage();
+		// reset to first page after filtering and keep current sort
+		currentPage = 1;
+		sortProducts(sortOption);
 	}
 
 	// --- SORTING ---
@@ -50,14 +58,18 @@
 				filteredProducts.sort((a, b) => b.product_stock - a.product_stock);
 				break;
 			case 'date-asc':
-				filteredProducts.sort(
-					(a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-				);
+				filteredProducts.sort((a, b) => {
+					const aTime = a.created_at ? new Date(a.created_at).getTime() : (a.id ?? 0);
+					const bTime = b.created_at ? new Date(b.created_at).getTime() : (b.id ?? 0);
+					return aTime - bTime;
+				});
 				break;
 			case 'date-desc':
-				filteredProducts.sort(
-					(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-				);
+				filteredProducts.sort((a, b) => {
+					const aTime = a.created_at ? new Date(a.created_at).getTime() : (a.id ?? 0);
+					const bTime = b.created_at ? new Date(b.created_at).getTime() : (b.id ?? 0);
+					return bTime - aTime;
+				});
 				break;
 			default:
 				filteredProducts = [...filteredProducts];
@@ -92,7 +104,7 @@
 <section class="flex flex-col gap-4 bg-gray-100 py-4 pt-24">
 	<div class="mx-auto h-auto max-w-7xl px-6">
 		<div class="rounded-2xl bg-gray-200 p-8">
-			<div class="mb-8 flex items-center gap-3 flex-wrap">
+			<div class="mb-8 flex flex-wrap items-center gap-3">
 				<Button>
 					Categories<ChevronDownOutline class="ms-2 h-6 w-6 text-white dark:text-white" />
 				</Button>
@@ -105,8 +117,8 @@
 					{#each ['Twin', 'Full', 'Queen', 'King'] as cat}
 						<li class="rounded-sm p-2 hover:bg-gray-100">
 							<Checkbox
-								checked={selectedCategories.includes(cat)}
-								onchange={() => toggleCategory(cat)}
+								checked={selectedCategories.includes(cat.toLowerCase())}
+								onchange={() => toggleCategory(cat.toLowerCase())}
 							>
 								{cat}
 							</Checkbox>
@@ -118,20 +130,42 @@
 					Sort By<ChevronDownOutline class="ms-2 h-6 w-6 text-white dark:text-white" />
 				</Button>
 				<Dropdown simple class="w-48 space-y-1 p-3 text-sm">
-					<li class="rounded-sm p-2 hover:bg-gray-100" onclick={() => sortProducts('price-asc')}>
-						Price (Low → High)
+					<li class="rounded-sm p-2 hover:bg-gray-100">
+						<button
+							type="button"
+							class="w-full text-left"
+							onclick={() => sortProducts('price-asc')}
+						>
+							Price (Low → High)
+						</button>
 					</li>
-					<li class="rounded-sm p-2 hover:bg-gray-100" onclick={() => sortProducts('price-desc')}>
-						Price (High → Low)
+					<li class="rounded-sm p-2 hover:bg-gray-100">
+						<button
+							type="button"
+							class="w-full text-left"
+							onclick={() => sortProducts('price-desc')}
+						>
+							Price (High → Low)
+						</button>
 					</li>
-					<li class="rounded-sm p-2 hover:bg-gray-100" onclick={() => sortProducts('stock')}>
-						Stock
+					<li class="rounded-sm p-2 hover:bg-gray-100">
+						<button type="button" class="w-full text-left" onclick={() => sortProducts('stock')}>
+							Stock
+						</button>
 					</li>
-					<li class="rounded-sm p-2 hover:bg-gray-100" onclick={() => sortProducts('date-asc')}>
-						Date (Oldest)
+					<li class="rounded-sm p-2 hover:bg-gray-100">
+						<button type="button" class="w-full text-left" onclick={() => sortProducts('date-asc')}>
+							Date (Oldest)
+						</button>
 					</li>
-					<li class="rounded-sm p-2 hover:bg-gray-100" onclick={() => sortProducts('date-desc')}>
-						Date (Newest)
+					<li class="rounded-sm p-2 hover:bg-gray-100">
+						<button
+							type="button"
+							class="w-full text-left"
+							onclick={() => sortProducts('date-desc')}
+						>
+							Date (Newest)
+						</button>
 					</li>
 				</Dropdown>
 			</div>
@@ -143,9 +177,9 @@
 				{#if displayedProducts.length > 0}
 					{#each displayedProducts as product (product.id)}
 						<Card class="p-0">
-							<a href={`/products/${product.id}`} class="w-full h-[200px] rounded-md">
+							<a href={`/products/${product.id}`} class="h-[200px] w-full rounded-md">
 								<img
-									class="rounded-t-lg p-8 h-full w-full"
+									class="h-full w-full rounded-t-lg p-8"
 									src={product.image}
 									alt={product.product_name}
 								/>
@@ -165,6 +199,7 @@
 									</span>
 									<Button class="h-fit" href="/">Buy now</Button>
 								</div>
+								<p class="mt-2 text-sm text-gray-600">In stock: {product.product_stock ?? 0}</p>
 							</div>
 						</Card>
 					{/each}

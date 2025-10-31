@@ -13,9 +13,7 @@ export const load: PageServerLoad = async () => {
 		product_stock: p.stock,
 		product_colors: p.colors,
 		product_category: p.category,
-		image: p.image
-			? `data:image/jpeg;base64,${Buffer.from(p.image).toString('base64')}`
-			: null,
+		image: p.image ? `data:image/jpeg;base64,${Buffer.from(p.image).toString('base64')}` : null,
 		product_rating: 0
 	}));
 
