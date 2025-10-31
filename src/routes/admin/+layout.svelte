@@ -3,8 +3,9 @@
 	let { data, children } = $props();
 </script>
 
-
-<section class="flex flex-col md:flex-row h-screen w-full bg-zinc-800">
-	<AdminSidebar/>
-	{@render children?.()}
+<section class="flex h-screen w-full flex-col bg-zinc-800 md:flex-row">
+	<AdminSidebar />
+	<div class="flex-1 overflow-auto bg-white">
+		{@render children?.()}
+	</div>
 </section>
