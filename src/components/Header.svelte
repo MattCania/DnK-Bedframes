@@ -14,9 +14,18 @@
 		DropdownHeader
 	} from 'flowbite-svelte';
 	export let session;
-	export let cart;
-	const user = session?.user
-		
+	export let cartItems: Array<{
+		id: number;
+		product_id: number | null;
+		name: string | null;
+		price: number;
+		quantity: number;
+		colors: string[];
+		category: string;
+		image: string | null;
+	}> = [];
+	import { cartCount } from '$lib/stores/cart';
+	const user = session?.user;
 </script>
 
 <Navbar breakpoint="lg" class="fixed z-50 w-full bg-zinc-800 ">
@@ -39,11 +48,46 @@
 				<NavLi class="lg:text-white" href="/register">Register</NavLi>
 			{/if}
 		</NavUl>
-		<CartSolid id="cart-drop" class="lg:mx-8 shrink-0 h-10 w-10 text-white" />
+		<div class="relative lg:mx-8">
+			<CartSolid id="cart-drop" class="h-10 w-10 shrink-0 text-white" />
+			{#if $cartCount > 0}
+				<span
+					class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white"
+				>
+					{$cartCount}
+				</span>
+			{/if}
+		</div>
 		<Dropdown class="w-128" triggeredBy="#cart-drop">
-			<DropdownGroup>
-				<DropdownItem>Product</DropdownItem>
-			</DropdownGroup>
+			{#if $cartCount === 0}
+				<DropdownGroup>
+					<DropdownItem disabled>Your cart is empty</DropdownItem>
+					<DropdownItem href="/products">Browse products</DropdownItem>
+				</DropdownGroup>
+			{:else}
+				<DropdownGroup>
+					{#each cartItems.slice(0, 5) as item}
+						<DropdownItem href={`/products/${item.product_id ?? ''}`}>
+							<div class="flex items-center gap-3">
+								{#if item.image}
+									<img
+										src={item.image}
+										alt={item.name ?? ''}
+										class="h-8 w-8 rounded object-cover"
+									/>
+								{/if}
+								<div class="flex flex-col">
+									<span class="text-sm">{item.name}</span>
+									<span class="text-xs text-gray-500">Qty: {item.quantity}</span>
+								</div>
+							</div>
+						</DropdownItem>
+					{/each}
+				</DropdownGroup>
+				<DropdownGroup>
+					<DropdownItem href="/cart">View cart</DropdownItem>
+				</DropdownGroup>
+			{/if}
 		</Dropdown>
 		{#if user}
 			<Avatar
@@ -59,14 +103,14 @@
 				</DropdownHeader>
 				<DropdownGroup>
 					{#if session.role === 'admin' || session.role === 'manager'}
-					<DropdownItem href="/admin">Admin</DropdownItem>
+						<DropdownItem href="/admin">Admin</DropdownItem>
 					{/if}
 					<DropdownItem href="/account">Account</DropdownItem>
 					<DropdownItem href="/purchases">Purchases</DropdownItem>
 					<DropdownItem href="/settings">Settings</DropdownItem>
 				</DropdownGroup>
 				<DropdownGroup>
-					<DropdownItem class="text-start w-full" onclick={() => signOut()}>Sign out</DropdownItem>
+					<DropdownItem class="w-full text-start" onclick={() => signOut()}>Sign out</DropdownItem>
 				</DropdownGroup>
 			</Dropdown>
 		{/if}
