@@ -3,15 +3,15 @@
 	import { onDestroy } from 'svelte';
 	let eventSelected = $state('');
 
-	let file: File | null = null;
-	let previewUrl: string | null = null;
+	let file = $state<File | null>(null);
+	let previewUrl = $state<string | null>(null);
 
 	const categories = [
-		{value: "twin", name: "Twin"},
-		{value: "full", name: "Full"},
-		{value: "king", name: "King"},
-		{value: "queen", name: "Queen"},
-	]
+		{ value: 'twin', name: 'Twin' },
+		{ value: 'full', name: 'Full' },
+		{ value: 'king', name: 'King' },
+		{ value: 'queen', name: 'Queen' }
+	];
 
 	function handleImageChange(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -44,7 +44,7 @@
 	});
 </script>
 
-<form class="ml-64 w-full bg-white p-8" method="POST" enctype="multipart/form-data">
+<form class="w-full bg-white p-6 md:p-8" method="POST" enctype="multipart/form-data">
 	<div class="mb-6 grid gap-6 md:grid-cols-2">
 		<div>
 			<Label for="product_image" class="mb-2">Product Image</Label>
