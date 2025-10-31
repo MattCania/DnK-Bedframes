@@ -49,6 +49,12 @@ export const actions: Actions = {
 		if (!account_id) return fail(401, { message: 'Not logged in' });
 
 		try {
+			// Check product stock
+			const pRows = await db.select().from(product).where(eq(product.id, product_id));
+			if (!pRows.length) return fail(404, { message: 'Product not found' });
+			const p = pRows[0];
+			const stock = Number(p.stock ?? 0);
+
 			const existing = await db
 				.select()
 				.from(cart)
@@ -60,23 +66,30 @@ export const actions: Actions = {
 					)
 				);
 
+			let added = 0;
 			if (existing.length) {
 				const current = existing[0];
+				const currentQty = Number(current.quantity ?? 0);
+				const allowed = Math.max(0, stock - currentQty);
+				if (allowed <= 0) return fail(400, { message: 'Max stock reached' });
+				added = Math.min(quantity, allowed);
 				await db
 					.update(cart)
-					.set({ quantity: (current.quantity ?? 0) + quantity, colors: [color] })
+					.set({ quantity: currentQty + added, colors: [color] })
 					.where(eq(cart.id, current.id));
 			} else {
+				added = Math.min(quantity, stock);
+				if (added <= 0) return fail(400, { message: 'Out of stock' });
 				await db.insert(cart).values({
 					account_id: Number(account_id),
 					product_id,
-					quantity,
+					quantity: added,
 					colors: [color],
 					category: size as any
 				});
 			}
 
-			return { success: true };
+			return { success: true, added };
 		} catch (err) {
 			console.error('Error adding to cart:', err);
 			return fail(500, { message: 'Database insert failed' });

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button, Input, Select, Rating } from 'flowbite-svelte';
 	import Footer from '../../../components/Footer.svelte';
-	import { enhance } from '$app/forms'; 
+	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { incCartCount } from '$lib/stores/cart';
 
@@ -27,7 +27,9 @@
 		return async ({ result }: any) => {
 			if (result.type === 'success') {
 				statusMessage = 'Added to cart.';
-				incCartCount(Number(quantity) || 1);
+				const payload = await result.data;
+				const added = Number(payload?.added ?? quantity ?? 1) || 1;
+				incCartCount(added);
 				void invalidateAll();
 			} else if (result.type === 'failure') {
 				const data = await result.data;
@@ -90,6 +92,7 @@
 							name="quantity"
 							type="number"
 							min="1"
+							max={product.stock}
 							bind:value={quantity}
 							class="w-full"
 						/>
@@ -107,7 +110,12 @@
 					</div>
 
 					<div class="space-y-3">
-						<Button type="submit" color="blue" class="w-full">Add to Cart</Button>
+						<Button
+							type="submit"
+							color="blue"
+							class="w-full"
+							disabled={!product.stock || product.stock <= 0}>Add to Cart</Button
+						>
 						<Button type="submit" color="green" class="w-full" formaction="?/buyNow">Buy Now</Button
 						>
 					</div>

@@ -105,8 +105,9 @@
 											<input type="hidden" name="id" value={item.id} />
 											<button
 												type="submit"
-												class="rounded border px-2 py-1 hover:bg-gray-50"
-												aria-label="Increase quantity">+</button
+												class="rounded border px-2 py-1 hover:bg-gray-50 disabled:opacity-50"
+												aria-label="Increase quantity"
+												disabled={item.quantity >= item.stock}>+</button
 											>
 										</form>
 									</div>

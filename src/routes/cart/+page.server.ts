@@ -18,7 +18,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 				product_id: cart.product_id,
 				name: product.name,
 				price: product.price,
-				image: product.image
+				image: product.image,
+				stock: product.stock
 			})
 			.from(cart)
 			.leftJoin(product, eq(product.id, cart.product_id))
@@ -35,6 +36,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			image: r.image
 				? `data:image/jpeg;base64,${Buffer.from(r.image as any).toString('base64')}`
 				: null,
+			stock: r.stock ?? 0,
 			subtotal: (r.quantity ?? 0) * parseFloat(r.price as unknown as string)
 		}));
 
@@ -56,14 +58,23 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'Invalid cart item id' });
 
 		const rows = await db
-			.select()
+			.select({
+				id: cart.id,
+				quantity: cart.quantity,
+				product_id: cart.product_id,
+				stock: product.stock
+			})
 			.from(cart)
+			.leftJoin(product, eq(product.id, cart.product_id))
 			.where(and(eq(cart.id, id), eq(cart.account_id, Number(session.userId))));
 		if (!rows.length) return fail(404, { message: 'Cart item not found' });
 		const current = rows[0];
+		const qty = Number(current.quantity ?? 0);
+		const stock = Number(current.stock ?? 0);
+		if (qty >= stock) return fail(400, { message: 'Max stock reached' });
 		await db
 			.update(cart)
-			.set({ quantity: (current.quantity ?? 0) + 1 })
+			.set({ quantity: qty + 1 })
 			.where(eq(cart.id, id));
 		return { success: true };
 	},
