@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.leftJoin(orderItem, eq(orderItem.order_id, orderTable.id))
 		.leftJoin(product, eq(product.id, orderItem.product_id))
 		.leftJoin(accounts, eq(accounts.id, orderTable.account_id))
-		.where(inArray(orderTable.status, ['pending', 'for_delivery', 'cancelled']));
+		.where(inArray(orderTable.status, ['pending', 'for_delivery', 'cancelled', 'completed']));
 
 	// Group rows by order id
 	const byId = new Map<number, any>();
@@ -66,7 +66,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		requests: allOrders.filter((o) => o.status === 'pending'),
 		confirmed: allOrders.filter((o) => o.status === 'for_delivery'),
-		denied: allOrders.filter((o) => o.status === 'cancelled')
+		denied: allOrders.filter((o) => o.status === 'cancelled'),
+		completed: allOrders.filter((o) => o.status === 'completed')
 	};
 };
 
@@ -87,6 +88,15 @@ export const actions: Actions = {
 		const orderId = Number(fd.get('order_id'));
 		if (!orderId) return fail(400, { message: 'Invalid order id' });
 		await db.update(orderTable).set({ status: 'cancelled' }).where(eq(orderTable.id, orderId));
+		return { success: true };
+	},
+	complete: async ({ request, locals }) => {
+		const session = await locals.auth();
+		if (!session || session.role !== 'admin') return fail(403, { message: 'Forbidden' });
+		const fd = await request.formData();
+		const orderId = Number(fd.get('order_id'));
+		if (!orderId) return fail(400, { message: 'Invalid order id' });
+		await db.update(orderTable).set({ status: 'completed' }).where(eq(orderTable.id, orderId));
 		return { success: true };
 	}
 };

@@ -5,14 +5,16 @@
 		requests: any[]; // pending
 		confirmed: any[]; // for_delivery
 		denied: any[]; // cancelled
+		completed: any[]; // completed
 	};
 
-	type Tab = 'requests' | 'confirmed' | 'denied';
+	type Tab = 'requests' | 'confirmed' | 'denied' | 'completed';
 	let tab: Tab = 'requests';
 	const tabs: { id: Tab; label: string }[] = [
 		{ id: 'requests', label: 'Order Requests' },
 		{ id: 'confirmed', label: 'Confirmed Requests' },
-		{ id: 'denied', label: 'Denied Requests' }
+		{ id: 'denied', label: 'Denied Requests' },
+		{ id: 'completed', label: 'Completed Orders' }
 	];
 
 	function ordersFor(t: Tab) {
@@ -124,6 +126,17 @@
 									type="submit"
 									class="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
 									>Confirm for Delivery</button
+								>
+							</form>
+						</div>
+					{:else if tab === 'confirmed'}
+						<div class="mt-4 flex justify-end">
+							<form method="POST" action="?/complete" use:enhance={onEnhance}>
+								<input type="hidden" name="order_id" value={order.id} />
+								<button
+									type="submit"
+									class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+									>Mark as Completed</button
 								>
 							</form>
 						</div>
