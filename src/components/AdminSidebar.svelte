@@ -73,6 +73,7 @@
 					<DropboxSolid class="h-5 w-5 text-white" />
 				{/snippet}
 				<SidebarItem href="/admin/orders" label="Orders" class="text-white hover:bg-zinc-600" />
+				<SidebarItem href="/admin/reviews" label="Reviews" class="text-white hover:bg-zinc-600" />
 				<SidebarItem
 					href="/admin/inventory"
 					label="Inventory (Create)"
