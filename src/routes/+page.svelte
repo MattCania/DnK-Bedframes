@@ -176,28 +176,34 @@
 			>
 				{#if displayedProducts.length > 0}
 					{#each displayedProducts as product (product.id)}
-						<Card class="p-0">
-							<a href={`/products/${product.id}`} class="h-[200px] w-full rounded-md">
+						<Card class="overflow-hidden p-0">
+							<a href={`/products/${product.id}`} class="block">
 								<img
-									class="h-full w-full rounded-t-lg p-8"
+									class="h-56 w-full object-cover"
 									src={product.image}
 									alt={product.product_name}
 								/>
 							</a>
-							<div class="px-5 pb-5">
-								<h5 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-									{product.product_name}
-								</h5>
-								<Rating rating={4} size={24} class="mt-2.5 mb-5">
-									{#snippet text()}
-										<Badge class="ms-3">{product.product_rating ?? '4.9'}</Badge>
-									{/snippet}
-								</Rating>
-								<div class="flex items-center justify-between">
-									<span class="text-lg font-bold text-gray-900 dark:text-white">
+							<div class="px-5 pt-4 pb-5">
+								<a href={`/products/${product.id}`} class="block">
+									<h5 class="mb-2 line-clamp-2 text-lg font-semibold tracking-tight text-gray-900">
+										{product.product_name}
+									</h5>
+								</a>
+								<div class="flex items-center gap-2">
+									<Rating rating={Math.round(product.product_rating || 0)} size={20}>
+										{#snippet text()}
+											<Badge class="ms-2 !bg-gray-200 !text-gray-700">
+												{product.review_count ?? 0}
+											</Badge>
+										{/snippet}
+									</Rating>
+								</div>
+								<div class="mt-3 flex items-center justify-between">
+									<span class="text-lg font-bold text-gray-900">
 										₱{product.product_price.toLocaleString()}
 									</span>
-									<Button class="h-fit" href="/">Buy now</Button>
+									<Button class="h-fit" href={`/products/${product.id}`}>Buy now</Button>
 								</div>
 								<p class="mt-2 text-sm text-gray-600">In stock: {product.product_stock ?? 0}</p>
 							</div>

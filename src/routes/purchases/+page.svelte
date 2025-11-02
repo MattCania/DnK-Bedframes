@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	export let data: {
 		pending: Array<any>;
 		for_delivery: Array<any>;
@@ -46,6 +47,17 @@
 		d.setDate(d.getDate() + 4);
 		return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 	}
+
+	const onEnhance =
+		() =>
+		async ({ result }: any) => {
+			if (result.type === 'success') {
+				location.reload();
+			} else if (result.type === 'failure') {
+				const msg = result.data?.message ?? 'Unable to submit review.';
+				alert(msg);
+			}
+		};
 </script>
 
 <section class="min-h-screen bg-white pt-24">
@@ -57,7 +69,7 @@
 					class="min-w-32 flex-1 px-4 py-3 font-medium focus:outline-none {tab === t.id
 						? 'bg-white text-gray-900'
 						: 'text-gray-600'}"
-					onclick={() => (tab = t.id)}
+					on:click={() => (tab = t.id)}
 				>
 					{t.label}
 				</button>
@@ -70,11 +82,18 @@
 				<p class="text-gray-600">No orders in this section.</p>
 			{:else}
 				{#each ordersFor(tab) as order (order.id)}
-					<div
-						class="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-						onclick={() => (selected = order)}
-					>
-						<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+					<div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+						<button
+							type="button"
+							class="mb-3 flex w-full flex-wrap items-center justify-between gap-3 text-left focus:outline-none"
+							on:click={() => (selected = order)}
+							on:keydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									selected = order;
+								}
+							}}
+						>
 							<div>
 								<div class="text-lg font-semibold text-gray-900">Order #{order.id}</div>
 								<div class="text-sm text-gray-600">
@@ -82,7 +101,7 @@
 								</div>
 							</div>
 							<div class="text-right font-semibold text-green-700">{fmtPHP(order.totalAmount)}</div>
-						</div>
+						</button>
 
 						<div class="space-y-3">
 							{#each order.items as item}
@@ -115,6 +134,59 @@
 										{fmtPHP(item.price * item.quantity)}
 									</div>
 								</div>
+
+								{#if tab === 'completed'}
+									<div class="mt-2 rounded-md border border-gray-100 p-3 text-sm">
+										{#if item.review}
+											<div>
+												<div class="font-medium">Your review</div>
+												<div class="text-gray-700">Rating: {item.review.rating}/5</div>
+												{#if item.review.comment}
+													<div class="mt-1 whitespace-pre-line text-gray-600">
+														{item.review.comment}
+													</div>
+												{/if}
+											</div>
+										{:else}
+											<form
+												method="POST"
+												action="?/review"
+												use:enhance={onEnhance}
+												class="space-y-2"
+											>
+												<input type="hidden" name="product_id" value={item.product_id} />
+												<div class="flex items-center gap-3">
+													<label class="text-gray-700" for={'rating-' + item.product_id}
+														>Rating</label
+													>
+													<select
+														id={'rating-' + item.product_id}
+														name="rating"
+														class="h-8 rounded border-gray-300"
+														required
+													>
+														<option value="">Select</option>
+														<option>1</option>
+														<option>2</option>
+														<option>3</option>
+														<option>4</option>
+														<option>5</option>
+													</select>
+												</div>
+												<textarea
+													name="comment"
+													rows="2"
+													placeholder="Share your thoughts (optional)"
+													aria-label="Review comment"
+													class="w-full rounded border-gray-300 p-2"
+												></textarea>
+												<button type="submit" class="rounded bg-blue-600 px-3 py-1 text-white"
+													>Submit review</button
+												>
+											</form>
+										{/if}
+									</div>
+								{/if}
 							{/each}
 						</div>
 
@@ -205,7 +277,7 @@
 						<button
 							type="button"
 							class="rounded bg-gray-700 px-4 py-2 text-white"
-							onclick={() => (selected = null)}>Back</button
+							on:click={() => (selected = null)}>Back</button
 						>
 					</div>
 

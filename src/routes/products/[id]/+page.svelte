@@ -5,9 +5,22 @@
 	import { invalidateAll } from '$app/navigation';
 	import { incCartCount } from '$lib/stores/cart';
 
-	export let data: { product: any };
+	export let data: {
+		product: any;
+		reviews: Array<any>;
+		ratingStats: { average: number; total: number; counts: Record<number, number> };
+	};
 
 	const product = data.product as any;
+	const reviews: Array<any> = data.reviews || [];
+	const stats = data.ratingStats || {
+		average: 0,
+		total: 0,
+		counts: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+	};
+
+	const starsArray = (n: number) => Array.from({ length: 5 }, (_, i) => i < Math.round(n));
+	const barPercent = (n: number) => (stats.total ? Math.round((n / stats.total) * 100) : 0);
 
 	let quantity = 1;
 	let selectedColor = product.colors?.[0] || 'Black';
@@ -46,6 +59,72 @@
 			<div>
 				<div class="rounded-lg border-2 border-gray-300 bg-white p-4">
 					<img src={product.image} alt={product.name} class="h-auto w-full rounded object-cover" />
+				</div>
+
+				<!-- Ratings & Reviews -->
+				<div class="mx-auto max-w-6xl p-6">
+					<h2 class="mb-4 text-xl font-bold text-gray-900">Ratings</h2>
+					<div
+						class="grid grid-cols-1 gap-30 rounded-lg border border-gray-200 bg-white p-4 md:grid-cols-3"
+					>
+						<div class="flex items-center gap-3">
+							<div class="text-3xl font-semibold">{stats.average.toFixed(1)}</div>
+							<div class="flex items-center gap-1 text-yellow-400">
+								{#each starsArray(stats.average) as filled}
+									<svg
+										class="h-5 w-5 {filled ? 'fill-yellow-400' : 'fill-gray-300'}"
+										viewBox="0 0 20 20"
+										><path
+											d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.563-.954L10 0l2.947 5.956 6.563.954-4.755 4.635 1.123 6.545z"
+										/></svg
+									>
+								{/each}
+							</div>
+						</div>
+						<div class="col-span-2 grid grid-cols-1 gap-2">
+							{#each [5, 4, 3, 2, 1] as s}
+								<div class="flex items-center gap-3">
+									<div class="w-6 text-sm">{s}</div>
+									<div class="relative h-2 flex-1 rounded bg-gray-200">
+										<div
+											class="absolute top-0 left-0 h-2 rounded bg-gray-600"
+											style={`width:${barPercent(stats.counts[s] || 0)}%`}
+										></div>
+									</div>
+									<div class="w-10 text-right text-xs text-gray-600">
+										{barPercent(stats.counts[s] || 0)}%
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+
+					<div class="mt-6 space-y-4">
+						{#each reviews as r}
+							<div class="rounded-lg border border-gray-200 bg-white p-4">
+								<div class="mb-1 flex items-center gap-2 text-yellow-400">
+									{#each Array.from({ length: 5 }, (_, i) => i < r.rating) as filled}
+										<svg
+											class="h-4 w-4 {filled ? 'fill-yellow-400' : 'fill-gray-300'}"
+											viewBox="0 0 20 20"
+											><path
+												d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.563-.954L10 0l2.947 5.956 6.563.954-4.755 4.635 1.123 6.545z"
+											/></svg
+										>
+									{/each}
+								</div>
+								<div class="mb-2 text-sm text-gray-700">
+									Reviews by: <span class="font-medium">{r.reviewer || 'Anonymous'}</span>
+								</div>
+								{#if r.comment}
+									<p class="text-sm text-gray-800">{r.comment}</p>
+								{/if}
+							</div>
+						{/each}
+						{#if reviews.length === 0}
+							<p class="text-sm text-gray-600">No reviews yet.</p>
+						{/if}
+					</div>
 				</div>
 			</div>
 

@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db';
-import { product, cart } from '$lib/server/db/schema';
+import { product, cart, review, accounts } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { redirect, fail } from '@sveltejs/kit';
 
@@ -18,6 +18,32 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const p = result[0];
 
+	const reviewRows = await db
+		.select({
+			id: review.id,
+			rating: review.rating,
+			comment: review.comment,
+			created_at: review.created_at,
+			firstname: accounts.firstname,
+			lastname: accounts.lastname
+		})
+		.from(review)
+		.leftJoin(accounts, eq(accounts.id, review.account_id))
+		.where(eq(review.product_id, Number(id)));
+
+	const reviews = reviewRows.map((r) => ({
+		id: r.id,
+		rating: Number(r.rating ?? 0),
+		comment: r.comment ?? '',
+		created_at: r.created_at,
+		reviewer: `${r.firstname ?? ''} ${r.lastname ? r.lastname.charAt(0) + '.' : ''}`.trim()
+	}));
+
+	const counts = [0, 0, 0, 0, 0, 0]; // index 1..5
+	for (const r of reviews) counts[r.rating] = (counts[r.rating] ?? 0) + 1;
+	const total = reviews.length || 0;
+	const avg = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
+
 	return {
 		product: {
 			id: p.id,
@@ -30,7 +56,19 @@ export const load: PageServerLoad = async ({ params }) => {
 			colors: p.colors || ['Black', 'White', 'Gray'],
 			sizes: [p.category],
 			category: p.category,
-			rating: 4.8
+			rating: Number(avg.toFixed(1))
+		},
+		reviews,
+		ratingStats: {
+			average: Number(avg.toFixed(1)),
+			total,
+			counts: {
+				5: counts[5] ?? 0,
+				4: counts[4] ?? 0,
+				3: counts[3] ?? 0,
+				2: counts[2] ?? 0,
+				1: counts[1] ?? 0
+			}
 		}
 	};
 };
@@ -49,7 +87,6 @@ export const actions: Actions = {
 		if (!account_id) return fail(401, { message: 'Not logged in' });
 
 		try {
-			// Check product stock
 			const pRows = await db.select().from(product).where(eq(product.id, product_id));
 			if (!pRows.length) return fail(404, { message: 'Product not found' });
 			const p = pRows[0];
