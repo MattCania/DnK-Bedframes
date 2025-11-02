@@ -47,6 +47,11 @@
 					<ChartOutline class="h-5 w-5 text-white" />
 				{/snippet}
 			</SidebarItem>
+			<SidebarItem href="/admin/reports" label="Reports" class="text-white hover:bg-zinc-600">
+				{#snippet icon()}
+					<ChartOutline class="h-5 w-5 text-white" />
+				{/snippet}
+			</SidebarItem>
 			<SidebarItem href="/admin/sales" label="Sales" class="text-white hover:bg-zinc-600">
 				{#snippet icon()}
 					<SalePercentSolid class="h-5 w-5 text-white" />
