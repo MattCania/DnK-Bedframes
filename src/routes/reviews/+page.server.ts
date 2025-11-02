@@ -30,5 +30,9 @@ export const load = async ({ locals }) => {
 		date: r.created_at
 	}));
 
-	return { items };
+	const count = items.length;
+	const sum = items.reduce((a, b) => a + (b.rating || 0), 0);
+	const average = count ? sum / count : 0;
+
+	return { items, average, count };
 };

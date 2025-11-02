@@ -1,6 +1,8 @@
 <script lang="ts">
 	export let data: {
 		items: Array<{ id: number; product: string; rating: number; comment: string; date: any }>;
+		average?: number;
+		count?: number;
 	};
 
 	function fmtDate(d: any) {
@@ -18,6 +20,36 @@
 <section class="min-h-screen bg-white pt-24">
 	<div class="mx-auto max-w-5xl px-4 md:px-6">
 		<h1 class="mb-4 text-2xl font-bold text-gray-900">My Reviews</h1>
+
+		<div class="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div class="text-sm text-gray-600">
+					Average rating {#if typeof data.count === 'number'}({data.count} review{data.count === 1
+							? ''
+							: 's'}){/if}
+				</div>
+				<div class="flex items-center gap-2">
+					{#if typeof data.average === 'number'}
+						{#each Array.from({ length: 5 }, (_, i) => i < Math.round(data.average ?? 0)) as on}
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill={on ? '#F59E0B' : 'none'}
+								stroke="#F59E0B"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2" /></svg
+							>
+						{/each}
+						<span class="text-sm text-gray-700">{(data.average ?? 0).toFixed(2)} / 5</span>
+					{:else}
+						<span class="text-sm text-gray-600">No ratings yet</span>
+					{/if}
+				</div>
+			</div>
+		</div>
 
 		{#if data.items.length === 0}
 			<p class="text-gray-600">You haven't written any reviews yet.</p>
