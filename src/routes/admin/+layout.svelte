@@ -5,7 +5,7 @@
 
 <section class="flex min-h-screen w-full flex-col bg-zinc-800 md:flex-row">
 	<AdminSidebar />
-	<div class="flex-1 overflow-auto bg-white md:ml-64">
+	<div class="flex-1 overflow-auto bg-zinc-900 md:ml-64">
 		{@render children?.()}
 	</div>
 </section>

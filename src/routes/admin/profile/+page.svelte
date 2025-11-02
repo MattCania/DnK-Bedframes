@@ -95,55 +95,55 @@
 	}
 </script>
 
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-zinc-900 text-white">
 	<div class="mx-auto max-w-4xl p-6">
 		<!-- Header -->
 		<div class="mb-8">
-			<h1 class="mb-2 text-3xl font-bold text-gray-900">Admin Profile</h1>
-			<p class="text-sm text-gray-600">Manage your admin account and profile details</p>
+			<h1 class="mb-2 text-3xl font-bold">Admin Profile</h1>
+			<p class="text-sm text-zinc-300">Manage your admin account and profile details</p>
 		</div>
 
 		<!-- Account Information Section -->
 		<div class="-t-2 -b-2 mb-8 py-6">
-			<h2 class="mb-4 text-lg font-bold text-gray-900">Account Information</h2>
+			<h2 class="mb-4 text-lg font-bold">Account Information</h2>
 
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 				<!-- Account ID -->
 				<div>
-					<p class="mb-2 block text-sm font-medium text-gray-700">Account ID</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Account ID</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2">
 						{accountData.account_id}
 					</div>
 				</div>
 
 				<!-- Email -->
 				<div>
-					<p class="mb-2 block text-sm font-medium text-gray-700">Email</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Email</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2">
 						{user?.user?.email}
 					</div>
 				</div>
 
 				<!-- Role -->
 				<div>
-					<p class="mb-2 block text-sm font-medium text-gray-700">Role</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 capitalize">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Role</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2 capitalize">
 						{accountData.role}
 					</div>
 				</div>
 
 				<!-- Provider -->
 				<div>
-					<p class="mb-2 block text-sm font-medium text-gray-700">Provider</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 capitalize">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Provider</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2 capitalize">
 						{accountData.provider}
 					</div>
 				</div>
 
 				<!-- Provider ID -->
 				<div class="md:col-span-2">
-					<p class="mb-2 block text-sm font-medium text-gray-700">Provider ID</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Provider ID</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2">
 						{accountData.provider_id}
 					</div>
 				</div>
@@ -153,7 +153,7 @@
 		<!-- Profile Information Section -->
 		<div class="-t-2 mb-8 pt-6">
 			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-bold text-gray-900">Profile Information</h2>
+				<h2 class="text-lg font-bold">Profile Information</h2>
 				{#if !editMode}
 					<Button onclick={handleEdit} color="blue" size="sm">Edit Profile</Button>
 				{/if}
@@ -162,21 +162,21 @@
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 				<!-- Profile ID -->
 				<div class="md:col-span-2">
-					<p class="mb-2 block text-sm font-medium text-gray-700">Profile ID</p>
-					<div class="rounded-lg bg-gray-100 px-4 py-2 text-gray-700">
+					<p class="mb-2 block text-sm font-medium text-zinc-300">Profile ID</p>
+					<div class="rounded-lg bg-zinc-800 px-4 py-2">
 						{profileData.profile_id}
 					</div>
 				</div>
 
 				<!-- First Name -->
 				<div>
-					<label for="firstname" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="firstname" class="mb-2 block text-sm font-medium text-zinc-300">
 						First Name *
 					</label>
 					{#if editMode}
 						<Input id="firstname" type="text" bind:value={profileData.firstname} required />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.firstname}
 						</div>
 					{/if}
@@ -184,13 +184,13 @@
 
 				<!-- Middle Name -->
 				<div>
-					<label for="middlename" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="middlename" class="mb-2 block text-sm font-medium text-zinc-300">
 						Middle Name
 					</label>
 					{#if editMode}
 						<Input id="middlename" type="text" bind:value={profileData.middlename} />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.middlename || '-'}
 						</div>
 					{/if}
@@ -198,13 +198,13 @@
 
 				<!-- Last Name -->
 				<div>
-					<label for="lastname" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="lastname" class="mb-2 block text-sm font-medium text-zinc-300">
 						Last Name *
 					</label>
 					{#if editMode}
 						<Input id="lastname" type="text" bind:value={profileData.lastname} required />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.lastname}
 						</div>
 					{/if}
@@ -212,11 +212,11 @@
 
 				<!-- Gender -->
 				<div>
-					<label for="gender" class="mb-2 block text-sm font-medium text-gray-700"> Gender </label>
+					<label for="gender" class="mb-2 block text-sm font-medium text-zinc-300"> Gender </label>
 					{#if editMode}
 						<Select id="gender" bind:value={profileData.gender} items={genderOptions} />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700 capitalize">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2 capitalize">
 							{profileData.gender
 								? genderOptions.find((g) => g.value === profileData.gender)?.name
 								: '-'}
@@ -226,13 +226,13 @@
 
 				<!-- Birthday -->
 				<div>
-					<label for="birthday" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="birthday" class="mb-2 block text-sm font-medium text-zinc-300">
 						Birthday
 					</label>
 					{#if editMode}
 						<Input id="birthday" type="date" bind:value={profileData.birthday} />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.birthday || '-'}
 						</div>
 					{/if}
@@ -240,13 +240,13 @@
 
 				<!-- Contacts -->
 				<div>
-					<label for="contacts" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="contacts" class="mb-2 block text-sm font-medium text-zinc-300">
 						Contact Number
 					</label>
 					{#if editMode}
 						<Input id="contacts" type="tel" bind:value={profileData.contacts} />
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.contacts || '-'}
 						</div>
 					{/if}
@@ -254,7 +254,7 @@
 
 				<!-- Address -->
 				<div class="md:col-span-2">
-					<label for="address" class="mb-2 block text-sm font-medium text-gray-700">
+					<label for="address" class="mb-2 block text-sm font-medium text-zinc-300">
 						Address
 					</label>
 					{#if editMode}
@@ -262,10 +262,10 @@
 							id="address"
 							bind:value={profileData.address}
 							rows="3"
-							class="w-full rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+							class="w-full rounded-lg bg-zinc-800 px-4 py-2 focus:outline-none"
 						></textarea>
 					{:else}
-						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
+						<div class="rounded-lg bg-zinc-800 px-4 py-2">
 							{profileData.address || '-'}
 						</div>
 					{/if}

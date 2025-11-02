@@ -136,75 +136,59 @@
 	}
 </script>
 
-<div class="min-h-screen bg-white">
+<div class="min-h-screen bg-zinc-900 text-white">
 	<div class="mx-auto max-w-7xl p-6 md:p-8">
 		<div class="mb-6 flex items-center justify-between gap-4">
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900">Catalog</h1>
-				<p class="text-sm text-gray-600">Edit existing products, pricing, stock and details</p>
+				<h1 class="text-2xl font-bold">Catalog</h1>
+				<p class="text-sm text-zinc-300">Edit existing products, pricing, stock and details</p>
 			</div>
 			<input
 				placeholder="Search by name, description, category"
 				bind:value={search}
-				class="w-96 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+				class="w-96 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm focus:outline-none"
 			/>
 		</div>
 
-		<div class="overflow-x-auto rounded-lg border border-gray-200">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
+		<div class="overflow-x-auto rounded-lg border border-zinc-700">
+			<table class="min-w-full divide-y divide-zinc-700">
+				<thead class="bg-zinc-800">
 					<tr>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>ID</th
-						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>Name</th
-						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>Image</th
-						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">ID</th>
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">Name</th>
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">Image</th>
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase"
 							>Category</th
 						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>Price</th
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">Price</th>
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">Stock</th>
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase">Colors</th
 						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>Stock</th
-						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
-							>Colors</th
-						>
-						<th
-							class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase"
+						<th class="px-4 py-3 text-left text-xs font-semibold text-zinc-300 uppercase"
 							>Actions</th
 						>
 					</tr>
 				</thead>
-				<tbody class="divide-y divide-gray-100 bg-white">
+				<tbody class="divide-y divide-zinc-700 bg-zinc-800">
 					{#if filtered.length === 0}
 						<tr>
-							<td colspan="8" class="px-4 py-6 text-center text-sm text-gray-500"
+							<td colspan="8" class="px-4 py-6 text-center text-sm text-zinc-300"
 								>No products found.</td
 							>
 						</tr>
 					{:else}
 						{#each filtered as r}
-							<tr class="align-top hover:bg-gray-50">
-								<td class="px-4 py-3 text-sm whitespace-nowrap text-gray-700">{r.id}</td>
-								<td class="px-4 py-3 text-sm text-gray-900">
+							<tr class="align-top hover:bg-zinc-700/30">
+								<td class="px-4 py-3 text-sm whitespace-nowrap text-zinc-200">{r.id}</td>
+								<td class="px-4 py-3 text-sm">
 									{#if editingId === r.id}
-										<input class="w-56 rounded border px-2 py-1" bind:value={editRow.name} />
+										<input
+											class="w-56 rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
+											bind:value={editRow.name}
+										/>
 										<div class="mt-2">
 											<textarea
-												class="w-80 rounded border px-2 py-1"
+												class="w-80 rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
 												rows="2"
 												bind:value={editRow.description}
 												placeholder="Description"
@@ -212,7 +196,7 @@
 										</div>
 									{:else}
 										<div class="font-medium">{r.name}</div>
-										<div class="line-clamp-2 max-w-[28rem] text-xs text-gray-500">
+										<div class="line-clamp-2 max-w-[28rem] text-xs text-zinc-300">
 											{r.description}
 										</div>
 									{/if}
@@ -224,11 +208,11 @@
 												<img
 													src={(editRow?.newImage ?? r.image) || ''}
 													alt="preview"
-													class="h-16 w-16 rounded object-cover ring-1 ring-gray-200"
+													class="h-16 w-16 rounded object-cover ring-1 ring-zinc-700"
 												/>
 											{:else}
 												<div
-													class="flex h-16 w-16 items-center justify-center rounded bg-gray-100 text-xs text-gray-400 ring-1 ring-gray-200"
+													class="flex h-16 w-16 items-center justify-center rounded bg-zinc-700 text-xs text-zinc-300 ring-1 ring-zinc-700"
 												>
 													No image
 												</div>
@@ -251,15 +235,18 @@
 										<img
 											src={r.image}
 											alt="thumb"
-											class="h-12 w-12 rounded object-cover ring-1 ring-gray-200"
+											class="h-12 w-12 rounded object-cover ring-1 ring-zinc-700"
 										/>
 									{:else}
-										<span class="text-gray-400">-</span>
+										<span class="text-zinc-400">-</span>
 									{/if}
 								</td>
 								<td class="px-4 py-3 text-sm">
 									{#if editingId === r.id}
-										<select class="rounded border px-2 py-1" bind:value={editRow.category}>
+										<select
+											class="rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
+											bind:value={editRow.category}
+										>
 											{#each categories as c}
 												<option value={c.value}>{c.name}</option>
 											{/each}
@@ -273,7 +260,7 @@
 										<input
 											type="number"
 											step="0.01"
-											class="w-28 rounded border px-2 py-1"
+											class="w-28 rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
 											bind:value={editRow.price}
 										/>
 									{:else}
@@ -284,7 +271,7 @@
 									{#if editingId === r.id}
 										<input
 											type="number"
-											class="w-24 rounded border px-2 py-1"
+											class="w-24 rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
 											bind:value={editRow.stock}
 										/>
 									{:else}
@@ -294,7 +281,7 @@
 								<td class="px-4 py-3 text-sm">
 									{#if editingId === r.id}
 										<input
-											class="w-56 rounded border px-2 py-1"
+											class="w-56 rounded border border-zinc-700 bg-zinc-900 px-2 py-1"
 											bind:value={editRow.colorsText}
 											placeholder="e.g. Black, White"
 										/>
@@ -314,7 +301,7 @@
 										>
 										<button
 											type="button"
-											class="ml-2 rounded bg-gray-200 px-3 py-1"
+											class="ml-2 rounded bg-zinc-700 px-3 py-1"
 											onclick={cancelEdit}>Cancel</button
 										>
 									{:else}
