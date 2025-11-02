@@ -1,12 +1,15 @@
 <script lang="ts">
 	export let data: {
-		pending: any[];
-		for_delivery: any[];
-		completed: any[];
-		cancelled: any[];
+		pending: Array<any>;
+		for_delivery: Array<any>;
+		completed: Array<any>;
+		cancelled: Array<any>;
 		estimatedDelivery: string;
 	};
-	let tab: 'pending' | 'for_delivery' | 'completed' | 'cancelled' = 'for_delivery';
+
+	type Tab = 'pending' | 'for_delivery' | 'completed' | 'cancelled';
+	let tab: Tab = 'for_delivery';
+	let selected: any = null;
 
 	const tabs = [
 		{ id: 'pending', label: 'Pending' },
@@ -15,8 +18,33 @@
 		{ id: 'cancelled', label: 'Cancelled' }
 	] as const;
 
-	function itemsFor(t: typeof tab) {
-		return data[t] ?? [];
+	function ordersFor(t: Tab) {
+		return (data as any)[t] ?? [];
+	}
+
+	const fmtPHP = (n: number) =>
+		`PHP ${Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+
+	function txNumber(order: any) {
+		const d = new Date(order.created_at ?? Date.now());
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const day = String(d.getDate()).padStart(2, '0');
+		return `${y}${m}${day}${String(order.id).padStart(2, '0')}`;
+	}
+
+	function orderedDate(order: any) {
+		return new Date(order.created_at).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+	}
+
+	function receivedDate(order: any) {
+		const d = new Date(order.created_at ?? Date.now());
+		d.setDate(d.getDate() + 4);
+		return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 	}
 </script>
 
@@ -36,60 +64,156 @@
 			{/each}
 		</div>
 
-		<!-- List -->
-		<div class="mt-4 space-y-4">
-			{#if itemsFor(tab).length === 0}
-				<p class="text-gray-600">No items in this section.</p>
+		<!-- Orders grouped like Admin -->
+		<div class="mt-4 space-y-6">
+			{#if ordersFor(tab).length === 0}
+				<p class="text-gray-600">No orders in this section.</p>
 			{:else}
-				{#each itemsFor(tab) as item (item.order_id + '-' + item.product_id)}
+				{#each ordersFor(tab) as order (order.id)}
 					<div
-						class="flex items-center justify-between gap-4 rounded-md border border-gray-200 p-3"
+						class="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+						onclick={() => (selected = order)}
 					>
-						<div class="flex items-center gap-3">
-							{#if item.image}
-								<img
-									src={item.image}
-									alt={item.name ?? ''}
-									class="h-20 w-28 rounded object-cover"
-								/>
-							{/if}
-							<div class="space-y-1">
-								<div class="text-base font-semibold text-gray-900">{item.name}</div>
-								<div class="grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 text-xs">
-									<div class="text-gray-500">Color:</div>
-									<select class="h-7 w-32 rounded border-gray-300 text-sm" disabled>
-										<option selected>{item.colors?.[0] ?? '—'}</option>
-									</select>
-									<div class="text-gray-500">Quantity:</div>
-									<select class="h-7 w-20 rounded border-gray-300 text-sm" disabled>
-										<option selected>{item.quantity}</option>
-									</select>
+						<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+							<div>
+								<div class="text-lg font-semibold text-gray-900">Order #{order.id}</div>
+								<div class="text-sm text-gray-600">
+									{new Date(order.created_at).toLocaleString()}
 								</div>
+							</div>
+							<div class="text-right font-semibold text-green-700">{fmtPHP(order.totalAmount)}</div>
+						</div>
 
-								{#if tab === 'for_delivery'}
-									<div class="mt-1 text-xs text-gray-600">
-										Estimated Delivery: {data.estimatedDelivery}
+						<div class="space-y-3">
+							{#each order.items as item}
+								<div
+									class="flex items-center justify-between gap-4 rounded-md border border-gray-100 p-3"
+								>
+									<div class="flex items-center gap-3">
+										{#if item.image}
+											<img
+												src={item.image}
+												alt={item.name ?? ''}
+												class="h-16 w-24 rounded object-cover"
+											/>
+										{/if}
+										<div class="space-y-1">
+											<div class="text-base font-semibold text-gray-900">{item.name}</div>
+											<div class="grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 text-xs">
+												<div class="text-gray-500">Color:</div>
+												<select class="h-7 w-28 rounded border-gray-300 text-sm" disabled>
+													<option selected>{item.colors?.[0] ?? '—'}</option>
+												</select>
+												<div class="text-gray-500">Quantity:</div>
+												<select class="h-7 w-20 rounded border-gray-300 text-sm" disabled>
+													<option selected>{item.quantity}</option>
+												</select>
+											</div>
+										</div>
 									</div>
-								{:else if tab === 'pending'}
-									<div class="mt-1 text-xs text-gray-600">Awaiting confirmation</div>
-								{:else if tab === 'completed'}
-									<div class="mt-1 text-xs text-gray-600">Delivered</div>
-								{:else if tab === 'cancelled'}
-									<div class="mt-1 text-xs text-gray-600">Cancelled</div>
-								{/if}
-							</div>
+									<div class="text-right text-sm font-semibold text-green-700">
+										{fmtPHP(item.price * item.quantity)}
+									</div>
+								</div>
+							{/each}
 						</div>
-						<div class="text-right">
-							<div class="text-sm text-green-700">
-								PHP {(item.price * item.quantity).toLocaleString('en-PH', {
-									minimumFractionDigits: 2
-								})}
+
+						{#if tab === 'for_delivery'}
+							<div class="mt-2 text-xs text-gray-600">
+								Estimated Delivery: {data.estimatedDelivery}
 							</div>
-							<!-- Optional original price placeholder: <div class="text-[10px] text-gray-400 line-through">PHP 8,000.00</div> -->
-						</div>
+						{:else if tab === 'pending'}
+							<div class="mt-2 text-xs text-gray-600">Awaiting confirmation</div>
+						{:else if tab === 'completed'}
+							<div class="mt-2 text-xs text-gray-600">Delivered</div>
+						{:else if tab === 'cancelled'}
+							<div class="mt-2 text-xs text-gray-600">Cancelled</div>
+						{/if}
 					</div>
 				{/each}
 			{/if}
 		</div>
+
+		{#if selected}
+			<div
+				class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+				role="dialog"
+				aria-modal="true"
+			>
+				<div class="w-full max-w-md rounded-xl bg-white p-4 shadow-xl">
+					<h2 class="mb-3 text-center text-xl font-bold">Transaction #{txNumber(selected)}</h2>
+					<div class="space-y-2">
+						{#each selected.items as it}
+							<div
+								class="flex items-center justify-between gap-3 rounded border border-gray-100 p-2"
+							>
+								<div class="flex items-center gap-2">
+									{#if it.image}
+										<img
+											src={it.image}
+											alt={it.name ?? ''}
+											class="h-12 w-12 rounded object-cover"
+										/>
+									{/if}
+									<div class="text-sm">
+										<div class="font-medium">{it.name}</div>
+										<div>Quantity: {it.quantity}</div>
+										<div>Color: {it.colors?.[0] ?? '—'}</div>
+									</div>
+								</div>
+								<div class="text-sm font-semibold text-green-700">{fmtPHP(it.price)}</div>
+							</div>
+						{/each}
+					</div>
+
+					<div class="mt-3 text-sm">
+						<div class="font-semibold">Payment Method:</div>
+						<label class="mt-1 inline-flex items-center gap-2"
+							><input type="radio" checked disabled class="h-4 w-4" /><span>Cash on Delivery</span
+							></label
+						>
+						<div class="mt-2">Ordered: {orderedDate(selected)}</div>
+						{#if selected.status === 'completed'}
+							<div>Received: {receivedDate(selected)}</div>
+						{/if}
+					</div>
+
+					<div class="mt-3">
+						<div class="mb-1 font-semibold">Total:</div>
+						<div class="space-y-1 rounded border p-2 text-sm">
+							<div class="flex items-center justify-between">
+								<span class="text-gray-600">Items Total:</span><span
+									class="font-semibold text-green-700">{fmtPHP(selected.itemsTotal)}</span
+								>
+							</div>
+							<div class="flex items-center justify-between">
+								<span class="text-gray-600">Shipping Fee:</span><span
+									class="font-semibold text-green-700">{fmtPHP(selected.shippingFee)}</span
+								>
+							</div>
+							<hr />
+							<div class="flex items-center justify-between">
+								<span class="font-medium">Total Amount:</span><span class="font-bold text-green-700"
+									>{fmtPHP(selected.totalAmount)}</span
+								>
+							</div>
+						</div>
+					</div>
+
+					<div class="mt-4 flex items-center justify-between">
+						<button type="button" class="rounded bg-red-600 px-4 py-2 text-white">Delete</button>
+						<button
+							type="button"
+							class="rounded bg-gray-700 px-4 py-2 text-white"
+							onclick={() => (selected = null)}>Back</button
+						>
+					</div>
+
+					<div class="mt-3 flex justify-center">
+						<img src="/logo.png" class="h-14 w-14 rounded bg-white p-1" alt="D&K" />
+					</div>
+				</div>
+			</div>
+		{/if}
 	</div>
 </section>

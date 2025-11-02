@@ -17,7 +17,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.auth();
 	if (!session || session.role !== 'admin') throw redirect(303, '/');
 
-	// Load orders for three sections: pending (requests), for_delivery (confirmed), cancelled (denied)
 	const rows = await db
 		.select({
 			order_id: orderTable.id,

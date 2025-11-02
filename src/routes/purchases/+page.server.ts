@@ -45,25 +45,40 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.leftJoin(product, eq(product.id, orderItem.product_id))
 		.where(eq(orderTable.account_id, Number(session.userId)));
 
-	const items = rows.map((r) => ({
-		order_id: r.order_id,
-		status: (r.status ?? 'pending').toLowerCase(),
-		created_at: r.created_at,
-		quantity: Number(r.quantity ?? 0),
-		colors: r.colors ?? [],
-		price: parseFloat(r.price as unknown as string),
-		product_id: r.product_id,
-		name: r.name,
-		image: formatImage(r.image),
-		category: r.category
-	}));
+	const byOrder = new Map<number, any>();
+	for (const r of rows) {
+		const id = Number(r.order_id);
+		const status = (r.status ?? 'pending').toLowerCase();
+		const entry = byOrder.get(id) ?? {
+			id,
+			status,
+			created_at: r.created_at,
+			items: [] as Array<any>,
+			itemsTotal: 0,
+			shippingFee: 36,
+			totalAmount: 0
+		};
+		const item = {
+			product_id: r.product_id,
+			name: r.name,
+			image: formatImage(r.image),
+			colors: r.colors ?? [],
+			quantity: Number(r.quantity ?? 0),
+			price: parseFloat(r.price as unknown as string),
+			category: r.category
+		};
+		entry.items.push(item);
+		entry.itemsTotal += item.price * item.quantity;
+		entry.totalAmount = entry.itemsTotal + entry.shippingFee;
+		byOrder.set(id, entry);
+	}
 
-	const grouped = {
-		pending: items.filter((i) => i.status === 'pending'),
-		for_delivery: items.filter((i) => i.status === 'for_delivery'),
-		completed: items.filter((i) => i.status === 'completed'),
-		cancelled: items.filter((i) => i.status === 'cancelled')
+	const orders = Array.from(byOrder.values());
+	return {
+		pending: orders.filter((o) => o.status === 'pending'),
+		for_delivery: orders.filter((o) => o.status === 'for_delivery'),
+		completed: orders.filter((o) => o.status === 'completed'),
+		cancelled: orders.filter((o) => o.status === 'cancelled'),
+		estimatedDelivery: estimatedRange()
 	};
-
-	return { ...grouped, estimatedDelivery: estimatedRange() };
 };
