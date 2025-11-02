@@ -107,6 +107,7 @@
 					{/if}
 					<DropdownItem href="/account">Account</DropdownItem>
 					<DropdownItem href="/purchases">Purchases</DropdownItem>
+					<DropdownItem href="/reviews">Reviews</DropdownItem>
 					<DropdownItem href="/settings">Settings</DropdownItem>
 				</DropdownGroup>
 				<DropdownGroup>
