@@ -61,7 +61,6 @@
 					<img src={product.image} alt={product.name} class="h-auto w-full rounded object-cover" />
 				</div>
 
-				<!-- Ratings & Reviews -->
 				<div class="mx-auto max-w-6xl p-6">
 					<h2 class="mb-4 text-xl font-bold text-gray-900">Ratings</h2>
 					<div

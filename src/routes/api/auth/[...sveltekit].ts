@@ -3,13 +3,17 @@ import Google from '@auth/core/providers/google';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET } from '$env/static/private';
 import { db } from '$lib/server/db';
 import { registerAccount } from '../register/helper/db';
+import Facebook from '@auth/sveltekit/providers/facebook';
 
 export const { handle, signIn, signOut } = SvelteKitAuth({
 	providers: [
 		Google({
 			clientId: GOOGLE_CLIENT_ID,
 			clientSecret: GOOGLE_CLIENT_SECRET
-		})
+		}),
+		// Facebook({
+		// 	clientId
+		// })
 	],
 	secret: AUTH_SECRET,
 	pages: {

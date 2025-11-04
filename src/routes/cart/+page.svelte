@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { incCartCount } from '$lib/stores/cart';
+	import { Button, Heading, P } from 'flowbite-svelte';
 
 	export let data: { items: Array<any>; total: number };
 	let items = data.items || [];
@@ -26,46 +27,44 @@
 	};
 </script>
 
-<section class="min-h-screen bg-white pt-28">
-	<div class="mx-auto max-w-6xl p-6">
-		<h1 class="mb-6 text-2xl font-bold text-gray-900">Your Cart</h1>
-
-		{#if items.length === 0}
-			<p class="text-gray-600">Your cart is empty.</p>
+<section class="min-h-screen bg-white pt-22">
+	<div class="flex flex-col justify-between mx-auto max-w-6xl p-6 bg-gray-100 h-full">
+			{#if items.length === 0}
+			<P class="text-gray-600">Your cart is empty.</P>
 		{:else}
-			<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-				<table class="min-w-full divide-y divide-gray-200">
+			<div class="h-full overflow-x-auto rounded-lg border border-gray-200 bg-gray-200">
+				<table class="table-fixed md:table-auto w-full divide-y divide-gray-200 bg-zinc-200">
 					<thead class="bg-gray-50">
 						<tr>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-left text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Product</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-left text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Options</th
 							>
 							<th
-								class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Price</th
 							>
 							<th
-								class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Qty</th
 							>
 							<th
-								class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Subtotal</th
 							>
 							<th
-								class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Action</th
 							>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-gray-200 bg-white">
 						{#each items as item}
-							<tr>
+							<tr class="">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center gap-3">
 										{#if item.image}
@@ -132,16 +131,16 @@
 				</table>
 			</div>
 
-			<div class="mt-6 flex items-center justify-between">
-				<a href="/products" class="text-blue-600 hover:underline">Continue shopping</a>
+			<div class="my-4 flex items-center justify-between">
+				<Button href="/" class="text-white bg-blue-600">Continue Shopping</Button>
 				<div class="text-right">
 					<div class="text-lg font-semibold text-gray-900">
 						Total: PHP {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
 					</div>
-					<a
+					<Button
 						href="/checkout"
 						class="mt-3 inline-block rounded bg-green-600 px-5 py-2 text-white hover:bg-green-700"
-						>Proceed to Checkout</a
+						>Proceed to Checkout</Button
 					>
 				</div>
 			</div>

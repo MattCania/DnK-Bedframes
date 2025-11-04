@@ -60,9 +60,8 @@
 		};
 </script>
 
-<section class="min-h-screen bg-white pt-24">
-	<div class="mx-auto max-w-6xl px-4 md:px-6">
-		<!-- Tabs -->
+<section class="min-h-screen bg-white pt-22">
+	<div class="h-full mx-auto max-w-6xl md:px-0 px-2 bg-gray-50">
 		<div class="flex overflow-x-auto rounded-md border border-gray-200 bg-gray-100 text-sm">
 			{#each tabs as t}
 				<button
@@ -76,8 +75,7 @@
 			{/each}
 		</div>
 
-		<!-- Orders grouped like Admin -->
-		<div class="mt-4 space-y-6">
+		<div class="mt-4 space-y-6 mx-4">
 			{#if ordersFor(tab).length === 0}
 				<p class="text-gray-600">No orders in this section.</p>
 			{:else}

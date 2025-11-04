@@ -3,6 +3,7 @@ import { redirect, fail } from '@sveltejs/kit';
 export async function load({ locals }) {
 	const session = await locals.auth();
 	if (session) {
+		console.log(session)
 		if (session.role === 'admin') throw redirect(302, '/admin');
 		throw redirect(302, '/');
 	}
