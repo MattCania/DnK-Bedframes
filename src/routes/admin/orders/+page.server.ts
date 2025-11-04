@@ -1,8 +1,14 @@
 import type { Actions, PageServerLoad } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { order as orderTable, orderItem, product, accounts } from '$lib/server/db/schema';
-import { and, eq, inArray } from 'drizzle-orm';
+import {
+	order as orderTable,
+	orderItem,
+	product,
+	accounts,
+	inventoryLog
+} from '$lib/server/db/schema';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 
 function formatImage(img: unknown) {
 	if (!img) return null;
@@ -78,7 +84,57 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		const orderId = Number(fd.get('order_id'));
 		if (!orderId) return fail(400, { message: 'Invalid order id' });
-		await db.update(orderTable).set({ status: 'for_delivery' }).where(eq(orderTable.id, orderId));
+
+		try {
+			await db.transaction(async (tx) => {
+				const [ord] = await tx
+					.select({ id: orderTable.id, status: orderTable.status })
+					.from(orderTable)
+					.where(eq(orderTable.id, orderId));
+				if (!ord) throw new Error('ORDER_NOT_FOUND');
+				if ((ord.status ?? '').toLowerCase() !== 'pending') throw new Error('ORDER_NOT_PENDING');
+
+				const items = await tx
+					.select({ product_id: orderItem.product_id, quantity: orderItem.quantity })
+					.from(orderItem)
+					.where(eq(orderItem.order_id, orderId));
+
+				if (!items.length) throw new Error('NO_ITEMS');
+
+				for (const it of items) {
+					const updated = await tx
+						.update(product)
+						.set({ stock: sql`${product.stock} - ${it.quantity}` })
+						.where(and(eq(product.id, it.product_id), gte(product.stock, it.quantity)))
+						.returning({ id: product.id });
+
+					if (updated.length === 0) {
+						throw new Error(`INSUFFICIENT_STOCK:${it.product_id}`);
+					}
+
+					await tx.insert(inventoryLog).values({
+						type: 'order_confirmed',
+						quantity_change: -it.quantity,
+						product_id: it.product_id
+					});
+				}
+
+				await tx
+					.update(orderTable)
+					.set({ status: 'for_delivery' })
+					.where(eq(orderTable.id, orderId));
+			});
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
+			if (message.startsWith('INSUFFICIENT_STOCK')) {
+				return fail(400, { message: 'Insufficient stock for one or more items.' });
+			}
+			if (message === 'ORDER_NOT_FOUND') return fail(404, { message: 'Order not found' });
+			if (message === 'ORDER_NOT_PENDING') return fail(400, { message: 'Order is not pending' });
+			if (message === 'NO_ITEMS') return fail(400, { message: 'Order has no items' });
+			return fail(500, { message: 'Failed to confirm order' });
+		}
+
 		return { success: true };
 	},
 	deny: async ({ request, locals }) => {
