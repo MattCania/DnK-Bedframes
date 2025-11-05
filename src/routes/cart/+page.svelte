@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { incCartCount } from '$lib/stores/cart';
 	import { Button, Heading, P } from 'flowbite-svelte';
+	import { CloseCircleSolid } from 'flowbite-svelte-icons'
 
 	export let data: { items: Array<any>; total: number };
 	let items = data.items || [];
@@ -37,35 +38,35 @@
 					<thead class="bg-gray-50">
 						<tr>
 							<th
-								class="md:px-6 px-4 py-3 text-left text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Product</th
 							>
 							<th
-								class="md:px-6 px-4 py-3 text-left text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Options</th
 							>
 							<th
-								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Price</th
 							>
 							<th
-								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Qty</th
 							>
 							<th
-								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Subtotal</th
 							>
 							<th
-								class="md:px-6 px-4 py-3 text-right text-xs font-medium md:tracking-wider text-gray-800 uppercase"
+								class="md:px-6 px-4 py-3 text-center text-xs font-medium md:tracking-wider text-gray-800 uppercase"
 								>Action</th
 							>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200 bg-white">
+					<tbody class="table-fixed md:table-auto divide-y divide-gray-200 bg-white">
 						{#each items as item}
 							<tr class="">
-								<td class="px-6 py-4 whitespace-nowrap">
+								<td class="text-center px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center gap-3">
 										{#if item.image}
 											<img
@@ -82,14 +83,14 @@
 										</div>
 									</div>
 								</td>
-								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+								<td class="text-center px-6 py-4 text-sm whitespace-nowrap text-gray-500">
 									<div>Color: {item.colors?.[0] ?? '—'}</div>
 									<div>Size: {item.category}</div>
 								</td>
-								<td class="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+								<td class="text-center px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 									PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
 								</td>
-								<td class="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+								<td class="text-center px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 									<div class="inline-flex items-center gap-2">
 										<form method="POST" action="?/decrement" use:enhance={onEnhance}>
 											<input type="hidden" name="id" value={item.id} />
@@ -111,18 +112,19 @@
 										</form>
 									</div>
 								</td>
-								<td class="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+								<td class="text-center px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 									PHP {item.subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
 								</td>
-								<td class="px-6 py-4 text-right text-sm whitespace-nowrap text-gray-900">
+								<td class="text-center px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 									<form method="POST" action="?/remove" use:enhance={onEnhance}>
 										<input type="hidden" name="id" value={item.id} />
 										<input type="hidden" name="qty" value={item.quantity} />
 										<button
 											type="submit"
-											class="rounded border border-red-600 px-3 py-1 text-red-600 hover:bg-red-50"
+											class="hidden md:block rounded border border-red-600 px-3 py-1 text-red-600 hover:bg-red-200"
 											>Remove</button
 										>
+										<CloseCircleSolid type="submit" class="w-8 h-8 text-center text-red-600 hover:text-red-200 text-2xl md:hidden"/>
 									</form>
 								</td>
 							</tr>

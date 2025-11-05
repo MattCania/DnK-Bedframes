@@ -1,5 +1,6 @@
 <script>
-	import { Button, Input, Select } from 'flowbite-svelte';
+	import { onDestroy, tick } from 'svelte';
+	import { Button, Input, Select, Modal } from 'flowbite-svelte';
 
 	let editMode = false;
 
@@ -88,6 +89,228 @@
 		editMode = false;
 	}
 
+	// ----------------------------
+	// Map / Modal / Reverse Geocode
+	// ----------------------------
+	let mapModalOpen = false;
+	let leafletLoaded = false;
+	let L; // leaflet namespace
+	let map;
+	let marker = null;
+
+	// preview strings shown in modal after reverse geocode
+	let previewAddress = '';
+	let previewLat = null;
+	let previewLng = null;
+
+	const MAP_CONTAINER_ID = 'profileAddressMap';
+	const DEFAULT_CENTER = [14.5995, 120.9842]; // Manila
+
+	// Load Leaflet only once and initialize map when called
+	async function ensureLeafletLoaded() {
+		if (!leafletLoaded) {
+			// dynamic import to avoid SSR issues
+			L = (await import('leaflet')).default ?? (await import('leaflet'));
+			await import('leaflet/dist/leaflet.css');
+			
+			// Fix default marker icon paths
+			delete L.Icon.Default.prototype._getIconUrl;
+			L.Icon.Default.mergeOptions({
+				iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+				iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+				shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+			});
+			
+			leafletLoaded = true;
+		}
+	}
+
+	async function initMap() {
+		if (!leafletLoaded) await ensureLeafletLoaded();
+		
+		// Destroy existing map if it exists
+		if (map) {
+			try {
+				map.off();
+				map.remove();
+				map = null;
+				marker = null;
+			} catch (e) {
+				console.error('Error removing map:', e);
+			}
+		}
+
+		// Ensure the container exists
+		const container = document.getElementById(MAP_CONTAINER_ID);
+		if (!container) {
+			console.error('Map container not found');
+			return;
+		}
+
+		// create map
+		map = L.map(MAP_CONTAINER_ID, {
+			center: DEFAULT_CENTER,
+			zoom: 11,
+			zoomControl: true
+		});
+
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			maxZoom: 19,
+			attribution: '&copy; OpenStreetMap contributors'
+		}).addTo(map);
+
+		// click handler
+		map.on('click', async (e) => {
+			const { lat, lng } = e.latlng;
+
+			// place marker
+			if (marker) {
+				marker.setLatLng([lat, lng]);
+			} else {
+				marker = L.marker([lat, lng]).addTo(map);
+			}
+
+			// run reverse geocode and set preview
+			await reverseGeocode(lat, lng);
+			// show popup with quick preview and hint
+			const popupContent = `<div style="max-width:220px;font-size:0.9rem">
+				<strong>Selected:</strong><br/>
+				${escapeHtml(previewAddress || `${lat.toFixed(5)}, ${lng.toFixed(5)}`)}
+				<br/><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>
+			</div>`;
+			marker.bindPopup(popupContent).openPopup();
+		});
+
+		// Fix size after initialization
+		setTimeout(() => {
+			if (map) {
+				map.invalidateSize();
+			}
+		}, 100);
+	}
+
+	// reverse geocode using Nominatim
+	async function reverseGeocode(lat, lng) {
+		previewLat = lat;
+		previewLng = lng;
+		previewAddress = ''; // reset while fetching
+		try {
+			// Nominatim reverse endpoint
+			const url = new URL('https://nominatim.openstreetmap.org/reverse');
+			url.searchParams.set('lat', String(lat));
+			url.searchParams.set('lon', String(lng));
+			url.searchParams.set('format', 'json');
+			url.searchParams.set('addressdetails', '1');
+			url.searchParams.set('zoom', '18');
+
+			const res = await fetch(url.toString(), {
+				headers: {
+					'Accept': 'application/json'
+				}
+			});
+			if (!res.ok) throw new Error('Reverse geocoding failed');
+			const json = await res.json();
+
+			// Build a readable address from returned fields if possible
+			let display = json.display_name ?? '';
+			if (!display && json.address) {
+				// attempt to compose a reasonable address
+				const a = json.address;
+				const parts = [
+					a.road || a.pedestrian || a.cycleway || a.footway || a.neighbourhood,
+					a.suburb || a.village || a.town || a.city_district,
+					a.city || a.county,
+					a.state,
+					a.country
+				].filter(Boolean);
+				display = parts.join(', ');
+			}
+
+			previewAddress = display || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+		} catch (err) {
+			console.error('Reverse geocode error', err);
+			previewAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+		}
+	}
+
+	// open modal and prepare map
+	async function openMapPicker() {
+		mapModalOpen = true;
+		
+		// Wait for modal to fully render
+		await tick();
+		await new Promise(resolve => setTimeout(resolve, 150));
+		
+		await ensureLeafletLoaded();
+		await initMap();
+		
+		// Additional wait and size fix
+		await new Promise(resolve => setTimeout(resolve, 200));
+		
+		if (map) {
+			map.invalidateSize();
+			
+			// If profileData.address already contains coordinates, try to parse and set marker
+			const coords = parseCoordsFromAddress(profileData.address);
+			if (coords) {
+				const [lat, lng] = coords;
+				map.setView([lat, lng], 14);
+				if (marker) {
+					marker.setLatLng([lat, lng]);
+				} else {
+					marker = L.marker([lat, lng]).addTo(map);
+				}
+				await reverseGeocode(lat, lng);
+			}
+		}
+	}
+
+	function closeMapPicker() {
+		mapModalOpen = false;
+	}
+
+	function applySelectedAddress() {
+		if (!previewAddress || previewLat == null || previewLng == null) return;
+		// format: "Address text (lat, lng)"
+		profileData.address = `${previewAddress} (${previewLat.toFixed(5)}, ${previewLng.toFixed(5)})`;
+		mapModalOpen = false;
+	}
+
+	// small helper to parse coords from previous stored profileData.address if using format like "... (lat, lng)"
+	function parseCoordsFromAddress(addr) {
+		if (!addr) return null;
+		const m = addr.match(/\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s*$/);
+		if (m) {
+			return [parseFloat(m[1]), parseFloat(m[2])];
+		}
+		return null;
+	}
+
+	// escape helper for popup content (very small)
+	function escapeHtml(str) {
+		if (!str) return '';
+		return String(str)
+			.replaceAll('&', '&amp;')
+			.replaceAll('<', '&lt;')
+			.replaceAll('>', '&gt;')
+			.replaceAll('"', '&quot;')
+			.replaceAll("'", '&#039;');
+	}
+
+	// optional cleanup on component destroy
+	onDestroy(() => {
+		try {
+			if (map) {
+				map.off();
+				map.remove();
+				map = null;
+			}
+		} catch (e) {
+			// ignore
+		}
+	});
+
+	// expose console for debugging (optional)
 	console.log(data);
 </script>
 
@@ -98,8 +321,6 @@
 			<p class="text-sm text-gray-600">Manage your account information and profile details</p>
 		</div>
 
-		
-
 		<div class="-t-2 mb-8 pt-6">
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-bold text-gray-900">Profile Information</h2>
@@ -109,7 +330,6 @@
 			</div>
 
 			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-
 				<div>
 					<label for="firstname" class="mb-2 block text-sm font-medium text-gray-700">
 						First Name *
@@ -192,13 +412,20 @@
 					<label for="address" class="mb-2 block text-sm font-medium text-gray-700">
 						Address
 					</label>
+
 					{#if editMode}
-						<textarea
-							id="address"
-							bind:value={profileData.address}
-							rows="3"
-							class="w-full rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-						></textarea>
+						<div class="flex gap-2 mb-2">
+							<textarea
+								id="address"
+								bind:value={profileData.address}
+								rows="3"
+								class="w-full rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none border border-gray-300"
+							></textarea>
+
+							<Button size="sm" color="blue" onclick={openMapPicker}>
+								Pick from Map
+							</Button>
+						</div>
 					{:else}
 						<div class="-gray-200 rounded-lg bg-gray-50 px-4 py-2 text-gray-700">
 							{profileData.address || '-'}
@@ -218,3 +445,49 @@
 		</div>
 	</div>
 </div>
+
+<!-- Flowbite Modal for map picker -->
+<Modal bind:open={mapModalOpen} size="xl" dismissable={false}>
+	<div class="p-4">
+		<h3 class="text-lg font-semibold mb-2">Select delivery location</h3>
+		<p class="text-sm text-gray-600 mb-3">Click on the map to drop a pin. Then press "Use this location".</p>
+
+		<div id={MAP_CONTAINER_ID} style="height: 400px; width: 100%;" class="rounded-lg border border-gray-300"></div>
+
+		<div class="mt-3">
+			<p class="text-sm text-gray-700">
+				<strong>Preview:</strong>
+			</p>
+			{#if previewAddress}
+				<p class="text-sm text-gray-800">{previewAddress}</p>
+				<p class="text-xs text-gray-500">{previewLat?.toFixed(5)}, {previewLng?.toFixed(5)}</p>
+			{:else}
+				<p class="text-sm text-gray-500">Click on the map to select a point.</p>
+			{/if}
+		</div>
+
+		<div class="mt-4 flex justify-end gap-2">
+			<Button color="light" onclick={closeMapPicker}>Cancel</Button>
+			<Button color="blue" onclick={applySelectedAddress} disabled={!previewAddress}>Use this location</Button>
+		</div>
+	</div>
+</Modal>
+
+<style>
+	:global(.leaflet-container) {
+		width: 100%;
+		height: 100%;
+		z-index: 1;
+	}
+
+	/* slight shadow for marker icons (optional) */
+	:global(.leaflet-marker-icon),
+	:global(.leaflet-marker-shadow) {
+		filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+	}
+	
+	/* Ensure the map container has proper sizing */
+	#profileAddressMap {
+		min-height: 400px;
+	}
+</style>

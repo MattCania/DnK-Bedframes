@@ -41,7 +41,6 @@
 		<NavUl>
 			<NavLi class="lg:text-white" href="/">Home</NavLi>
 			<NavLi class="lg:text-white" href="/about">About</NavLi>
-			<NavLi class="lg:text-white" href="/contact">Contact</NavLi>
 
 			{#if !user}
 				<NavLi class="lg:text-white" href="/login">Login</NavLi>

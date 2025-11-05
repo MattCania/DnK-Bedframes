@@ -23,6 +23,7 @@ export const genderEnum = pgEnum('gender_enum', ['male', 'female']);
 export const roleEnum = pgEnum('role_enum', ['admin', 'user', 'manager']);
 export const departmentEnum = pgEnum('department_enum', ['production', 'management', 'staff']);
 export const categoryEnum = pgEnum('category_enum', ['twin', 'full', 'queen', 'king']);
+export const statusEnum = pgEnum('status_enum', ['pending', 'cancelled', 'completed', 'delivery']);
 
 //  Tables
 export const accounts = pgTable('accounts', {
@@ -40,7 +41,7 @@ export const accounts = pgTable('accounts', {
 	address: text('address'),
 	gender: genderEnum('gender'),
 	created_at: timestamp('created_at').defaultNow(),
-	updated_at: timestamp('updated_at').$onUpdate(() => new Date()),
+	updated_at: timestamp('updated_at').$onUpdate(() => new Date())
 });
 
 export const admin = pgTable('admin', {
@@ -82,10 +83,15 @@ export const product = pgTable('product', {
 export const order = pgTable('order', {
 	id: serial('id').primaryKey(),
 	created_at: timestamp('created_at').defaultNow().notNull(),
-	status: varchar('status', { length: 255 }).notNull(),
 	account_id: integer('account_id')
 		.notNull()
-		.references(() => accounts.id)
+		.references(() => accounts.id),
+	status: statusEnum('status').notNull(),
+	shipping_fee: decimal('shipping_fee').notNull().default('0'),
+	distance_km: decimal('distance_km').notNull().default('0'),
+	total_amount: decimal('total_amount').notNull().default('0'),
+
+	product_ids: integer('product_ids').array().notNull()
 });
 
 export const orderItem = pgTable('order_item', {
@@ -114,7 +120,7 @@ export const cart = pgTable('cart', {
 		.array()
 		.default(sql`ARRAY[]::text[]`),
 	quantity: integer('quantity'),
-	category: categoryEnum('category').notNull(),
+	category: categoryEnum('category').notNull()
 });
 
 export const cartItem = pgTable('cart_item', {
