@@ -28,11 +28,12 @@
 
 	const STORE_LAT = 14.76741;
 	const STORE_LNG = 121.04385;
-	const STORE_ADDRESS = 'Zabarte Road, Barangay 175, Zone 15, Camarin, District 1, Caloocan, Northern Manila District, Metro Manila, 1428, Philippines';
+	const STORE_ADDRESS =
+		'Zabarte Road, Barangay 175, Zone 15, Camarin, District 1, Caloocan, Northern Manila District, Metro Manila, 1428, Philippines';
 
 	const BASE_FEE = 200;
 	const RATE_PER_KM = 15;
-	// const FREE_SHIPPING_THRESHOLD = 10000; // Free shipping for orders above this amount
+	const FREE_SHIPPING_THRESHOLD = 2000; // Match server threshold
 
 	let calculatedDistance: number | null = null;
 	let calculatedShippingFee = data.shippingFee ?? 0;
@@ -42,7 +43,7 @@
 
 	function parseCoordinates(address: string | null): { lat: number; lng: number } | null {
 		if (!address) return null;
-		
+
 		const coordMatch = address.match(/\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s*$/);
 		if (coordMatch) {
 			return {
@@ -50,23 +51,22 @@
 				lng: parseFloat(coordMatch[2])
 			};
 		}
-		
+
 		return null;
 	}
 
 	function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-		const R = 6371; 
+		const R = 6371;
 		const dLat = toRad(lat2 - lat1);
 		const dLon = toRad(lon2 - lon1);
-		
+
 		const a =
 			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-			Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-			Math.sin(dLon / 2) * Math.sin(dLon / 2);
-		
+			Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
 		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		const distance = R * c; // Distance in kilometers
-		
+
 		return distance;
 	}
 
@@ -75,23 +75,23 @@
 	}
 
 	function calculateShippingFee(distanceKm: number): number {
-		// if (itemsTotal >= FREE_SHIPPING_THRESHOLD) {
-		// 	return 0;
-		// }
-		
-		const fee = BASE_FEE + (distanceKm * RATE_PER_KM);
+		if (itemsTotal >= FREE_SHIPPING_THRESHOLD) {
+			return 0;
+		}
+		const fee = BASE_FEE + distanceKm * RATE_PER_KM;
 		return Math.round(fee * 100) / 100;
 	}
 
 	function performCalculation() {
 		isCalculating = true;
 		calculationError = '';
-		
+
 		try {
 			const customerCoords = parseCoordinates(account?.address);
-			
+
 			if (!customerCoords) {
-				calculationError = 'Please set your delivery address with coordinates in your account settings.';
+				calculationError =
+					'Please set your delivery address with coordinates in your account settings.';
 				calculatedDistance = null;
 				calculatedShippingFee = data.shippingFee ?? 50;
 				calculatedTotal = itemsTotal + calculatedShippingFee;
@@ -108,7 +108,6 @@
 			calculatedDistance = Math.round(distance * 100) / 100;
 			calculatedShippingFee = calculateShippingFee(distance);
 			calculatedTotal = itemsTotal + calculatedShippingFee;
-			
 		} catch (err) {
 			console.error('Distance calculation error:', err);
 			calculationError = 'Error calculating distance. Using default shipping fee.';
@@ -141,7 +140,7 @@
 						<div class="text-gray-500">Customer:</div>
 						<div class="font-medium text-gray-900">{fullname || '—'}</div>
 					</div>
-					
+
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<div class="text-gray-500">Address:</div>
@@ -151,17 +150,17 @@
 					</div>
 
 					{#if calculatedDistance !== null}
-						<div class="rounded-md bg-blue-50 border border-blue-100 p-3">
-							<div class="text-gray-700 font-medium mb-1">📍 Delivery Distance</div>
-							<div class="text-gray-900 font-semibold">{calculatedDistance} km</div>
-							<div class="text-xs text-gray-600 mt-1">
-								From: Zabarte Road, Camarin, Caloocan
-							</div>
+						<div class="rounded-md border border-blue-100 bg-blue-50 p-3">
+							<div class="mb-1 font-medium text-gray-700">📍 Delivery Distance</div>
+							<div class="font-semibold text-gray-900">{calculatedDistance} km</div>
+							<div class="mt-1 text-xs text-gray-600">From: Zabarte Road, Camarin, Caloocan</div>
 						</div>
 					{/if}
 
 					{#if calculationError}
-						<div class="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-xs text-yellow-800">
+						<div
+							class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800"
+						>
 							⚠️ {calculationError}
 						</div>
 					{/if}
@@ -207,17 +206,19 @@
 									{:else if calculatedShippingFee === 0}
 										<span class="text-green-600">FREE</span>
 									{:else}
-										PHP {calculatedShippingFee.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+										PHP {calculatedShippingFee.toLocaleString('en-PH', {
+											minimumFractionDigits: 2
+										})}
 									{/if}
 								</span>
 							</div>
-							
+
 							<!-- {#if itemsTotal < FREE_SHIPPING_THRESHOLD && FREE_SHIPPING_THRESHOLD - itemsTotal < 500}
 								<div class="text-xs text-blue-600">
 									💡 Add PHP {(FREE_SHIPPING_THRESHOLD - itemsTotal).toFixed(2)} more for free shipping!
 								</div>
 							{/if} -->
-							
+
 							<hr />
 							<div class="flex items-center justify-between text-base">
 								<span class="font-medium text-gray-900">Total Amount:</span>
@@ -275,32 +276,43 @@
 
 		<div class="mt-6 flex justify-center">
 			<form method="POST" action="?/purchase">
-	<input type="hidden" name="shipping_fee" value={calculatedShippingFee} />
-	<input type="hidden" name="distance_km" value={calculatedDistance ?? 0} />
-	<input type="hidden" name="total_amount" value={calculatedTotal} />
+				<input type="hidden" name="shipping_fee" value={calculatedShippingFee} />
+				<input type="hidden" name="distance_km" value={calculatedDistance ?? 0} />
+				<input type="hidden" name="total_amount" value={calculatedTotal} />
 
-	<input type="hidden" name="product_ids" value={JSON.stringify(items.map(i => i.product_id))} />
-	<input type="hidden" name="quantities" value={JSON.stringify(items.map(i => i.quantity))} />
-	<input type="hidden" name="colors" value={JSON.stringify(items.map(i => i.colors?.[0] ?? null))} />
-	<input type="hidden" name="items_total" value={itemsTotal} />
+				<input
+					type="hidden"
+					name="product_ids"
+					value={JSON.stringify(items.map((i) => i.product_id).filter((id) => id != null))}
+				/>
+				<input
+					type="hidden"
+					name="quantities"
+					value={JSON.stringify(items.map((i) => i.quantity))}
+				/>
+				<input
+					type="hidden"
+					name="colors"
+					value={JSON.stringify(items.map((i) => i.colors?.[0] ?? null))}
+				/>
+				<input type="hidden" name="items_total" value={itemsTotal} />
 
-	<button
-		type="submit"
-		class="rounded-md bg-blue-600 px-8 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-		disabled={items.length === 0 || isCalculating || !!calculationError}
-	>
-		{#if isCalculating}
-			Calculating...
-		{:else}
-			Purchase (PHP {calculatedTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })})
-		{/if}
-	</button>
-</form>
-
+				<button
+					type="submit"
+					class="rounded-md bg-blue-600 px-8 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={items.length === 0 || isCalculating || !!calculationError}
+				>
+					{#if isCalculating}
+						Calculating...
+					{:else}
+						Purchase (PHP {calculatedTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })})
+					{/if}
+				</button>
+			</form>
 		</div>
 
 		<div class="mt-8 mb-6 rounded-lg bg-gray-100 p-4 text-sm text-gray-700">
-			<h3 class="font-semibold mb-2">📦 Shipping Information</h3>
+			<h3 class="mb-2 font-semibold">📦 Shipping Information</h3>
 			<ul class="space-y-1 text-xs">
 				<li>• Base shipping fee: PHP {BASE_FEE}</li>
 				<li>• Additional: PHP {RATE_PER_KM} per kilometer</li>

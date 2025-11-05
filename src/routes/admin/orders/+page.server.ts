@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		.leftJoin(orderItem, eq(orderItem.order_id, orderTable.id))
 		.leftJoin(product, eq(product.id, orderItem.product_id))
 		.leftJoin(accounts, eq(accounts.id, orderTable.account_id))
-		.where(inArray(orderTable.status, ['pending', 'for_delivery', 'cancelled', 'completed']));
+		.where(inArray(orderTable.status, ['pending', 'delivery', 'cancelled', 'completed']));
 
 	// Group rows by order id
 	const byId = new Map<number, any>();
@@ -73,7 +73,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const allOrders = Array.from(byId.values());
 	return {
 		requests: allOrders.filter((o) => o.status === 'pending'),
-		confirmed: allOrders.filter((o) => o.status === 'for_delivery'),
+		confirmed: allOrders.filter((o) => o.status === 'delivery'),
 		denied: allOrders.filter((o) => o.status === 'cancelled'),
 		completed: allOrders.filter((o) => o.status === 'completed')
 	};
@@ -121,10 +121,7 @@ export const actions: Actions = {
 					});
 				}
 
-				await tx
-					.update(orderTable)
-					.set({ status: 'for_delivery' })
-					.where(eq(orderTable.id, orderId));
+				await tx.update(orderTable).set({ status: 'delivery' }).where(eq(orderTable.id, orderId));
 			});
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'UNKNOWN_ERROR';
