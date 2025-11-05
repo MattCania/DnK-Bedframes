@@ -12,8 +12,12 @@
 			stockLeft: number;
 			status: string;
 		}>;
-		insights: { monthlyRevenue: number; topBuyer: string; topCategory: string };
-		stock: { lowStock: number; total: number };
+		insights: { monthlyRevenue: number; topBuyer: string; topCategory: string; topProduct: string };
+		stock: {
+			lowStock: number;
+			total: number;
+			items: Array<{ id: number; name: string; stock: number }>;
+		};
 		inquiries: Array<{
 			id: number;
 			comment: string | null;
@@ -97,6 +101,14 @@
 	onMount(() => {
 		page = 1;
 	});
+	let showLowStock = false;
+
+	function openLowStock() {
+		if ((data.stock?.lowStock ?? 0) > 0) showLowStock = true;
+	}
+	function closeLowStock() {
+		showLowStock = false;
+	}
 </script>
 
 <section class="min-h-screen bg-zinc-900 p-4 text-white">
@@ -201,9 +213,12 @@
 					{data.stock.lowStock > 0 ? 'Low / Out of Stocks Alerts' : 'All stocks are good!'}
 				</div>
 				{#if data.stock.lowStock > 0}
-					<div class="mt-2 rounded bg-zinc-700 p-2 text-xs">
-						{data.stock.lowStock} products are low on stock.
-					</div>
+					<button
+						class="mt-2 w-full rounded bg-zinc-700 p-2 text-left text-xs hover:bg-zinc-600"
+						on:click={openLowStock}
+					>
+						{data.stock.lowStock} products are low on stock. Click to view.
+					</button>
 				{:else}
 					<div class="mt-2 rounded bg-zinc-700 p-2 text-xs">All stocks are good!</div>
 				{/if}
@@ -215,6 +230,8 @@
 					<div class="text-right">{data.insights.topCategory}</div>
 					<div class="text-zinc-400">Top Buyer</div>
 					<div class="text-right">{data.insights.topBuyer}</div>
+					<div class="text-zinc-400">Top Product</div>
+					<div class="text-right">{data.insights.topProduct}</div>
 					<div class="text-zinc-400">Monthly Revenue</div>
 					<div class="text-right">{fmtCurrency(data.insights.monthlyRevenue)}</div>
 				</div>
@@ -255,6 +272,49 @@
 	<div class="mt-4">
 		<button on:click={printPDF} class="rounded bg-zinc-700 px-3 py-2 text-sm">Export PDF</button>
 	</div>
+
+	{#if showLowStock}
+		<div class="fixed inset-0 z-50 flex items-center justify-center">
+			<button
+				type="button"
+				class="absolute inset-0 bg-black/60"
+				aria-label="Close"
+				on:click={closeLowStock}
+			></button>
+			<div
+				class="relative z-10 w-full max-w-lg rounded-lg border border-zinc-700 bg-zinc-800 p-4 text-white shadow-xl"
+			>
+				<div class="mb-2 flex items-center justify-between">
+					<div class="font-semibold">Low Stock Products</div>
+					<button class="rounded bg-zinc-700 px-2 py-1 text-xs" on:click={closeLowStock}
+						>Close</button
+					>
+				</div>
+				{#if (data.stock.items?.length ?? 0) === 0}
+					<div class="text-sm text-zinc-400">No low stock products.</div>
+				{:else}
+					<div class="max-h-80 overflow-y-auto">
+						<table class="w-full text-left text-sm">
+							<thead class="bg-zinc-700 text-xs text-zinc-300 uppercase">
+								<tr>
+									<th class="px-3 py-2">Product</th>
+									<th class="px-3 py-2">Stock</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each data.stock.items as p}
+									<tr class="border-t border-zinc-700">
+										<td class="px-3 py-2">{p.name}</td>
+										<td class="px-3 py-2">{p.stock}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
 </section>
 
 <style>

@@ -63,12 +63,14 @@ export const load: PageServerLoad = async ({ locals }) => {
 	let monthlyRevenue = 0;
 	const byBuyer = new Map<string, number>();
 	const byCategory = new Map<string, number>();
+	const byProduct = new Map<string, number>();
 
 	for (const s of sales) {
 		const amt = peso(s.price) * s.qty;
 		const d = new Date(s.date as any);
 		if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) monthlyRevenue += amt;
 		byBuyer.set(s.buyer, (byBuyer.get(s.buyer) ?? 0) + amt);
+		byProduct.set(s.item || '—', (byProduct.get(s.item || '—') ?? 0) + amt);
 		// Match category by the product row in rows array
 		const row = rows.find((r) => r.order_id === s.orderId && r.product_name === s.item);
 		const cat = (row?.category as unknown as string) ?? '—';
@@ -77,13 +79,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const topBuyer = Array.from(byBuyer.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
 	const topCategory = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
+	const topProduct = Array.from(byProduct.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
 
 	// Stock status
 	const stocks = await db
 		.select({ id: product.id, name: product.name, stock: product.stock })
 		.from(product)
 		.orderBy(desc(product.stock));
-	const lowStock = stocks.filter((p) => (p.stock ?? 0) <= 2).length;
+	const lowStockItems = stocks.filter((p) => (p.stock ?? 0) < 5);
+	const lowStock = lowStockItems.length;
 
 	// Inquiries: reuse latest product reviews (if any)
 	const inquiries = await db
@@ -104,11 +108,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 		insights: {
 			monthlyRevenue,
 			topBuyer,
-			topCategory
+			topCategory,
+			topProduct
 		},
 		stock: {
 			lowStock,
-			total: stocks.length
+			total: stocks.length,
+			items: lowStockItems
 		},
 		inquiries
 	};
