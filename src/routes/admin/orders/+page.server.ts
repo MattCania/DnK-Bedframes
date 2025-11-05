@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
+import { sendMail } from '$lib/server/mailer';
 import {
 	order as orderTable,
 	orderItem,
@@ -136,6 +137,23 @@ export const actions: Actions = {
 			return fail(500, { message: 'Failed to confirm order' });
 		}
 
+		// Notify user via email (best-effort)
+		try {
+			const [row] = await db
+				.select({ email: accounts.email, first: accounts.firstname, last: accounts.lastname })
+				.from(orderTable)
+				.leftJoin(accounts, eq(accounts.id, orderTable.account_id))
+				.where(eq(orderTable.id, orderId));
+			if (row?.email) {
+				const name = `${row.first ?? ''} ${row.last ?? ''}`.trim();
+				await sendMail({
+					to: row.email,
+					subject: `Your Order #${orderId} is Confirmed`,
+					text: `Hello ${name || 'Customer'}, your order #${orderId} has been confirmed and is now for delivery.`
+				});
+			}
+		} catch {}
+
 		return { success: true };
 	},
 	deny: async ({ request, locals }) => {
@@ -145,6 +163,24 @@ export const actions: Actions = {
 		const orderId = Number(fd.get('order_id'));
 		if (!orderId) return fail(400, { message: 'Invalid order id' });
 		await db.update(orderTable).set({ status: 'cancelled' }).where(eq(orderTable.id, orderId));
+
+		// Notify user via email (best-effort)
+		try {
+			const [row] = await db
+				.select({ email: accounts.email, first: accounts.firstname, last: accounts.lastname })
+				.from(orderTable)
+				.leftJoin(accounts, eq(accounts.id, orderTable.account_id))
+				.where(eq(orderTable.id, orderId));
+			if (row?.email) {
+				const name = `${row.first ?? ''} ${row.last ?? ''}`.trim();
+				await sendMail({
+					to: row.email,
+					subject: `Your Order #${orderId} has been Denied`,
+					text: `Hello ${name || 'Customer'}, unfortunately your order #${orderId} was denied. Please contact support for details.`
+				});
+			}
+		} catch {}
+
 		return { success: true };
 	},
 	complete: async ({ request, locals }) => {
@@ -192,6 +228,23 @@ export const actions: Actions = {
 		} catch (e) {
 			return fail(500, { message: 'Failed to complete order' });
 		}
+
+		// Notify user via email (best-effort)
+		try {
+			const [row] = await db
+				.select({ email: accounts.email, first: accounts.firstname, last: accounts.lastname })
+				.from(orderTable)
+				.leftJoin(accounts, eq(accounts.id, orderTable.account_id))
+				.where(eq(orderTable.id, orderId));
+			if (row?.email) {
+				const name = `${row.first ?? ''} ${row.last ?? ''}`.trim();
+				await sendMail({
+					to: row.email,
+					subject: `Your Order #${orderId} is Completed`,
+					text: `Hello ${name || 'Customer'}, your order #${orderId} has been completed. Thank you for shopping with us!`
+				});
+			}
+		} catch {}
 
 		return { success: true };
 	}
