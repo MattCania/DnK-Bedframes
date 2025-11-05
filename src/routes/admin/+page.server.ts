@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { payment, order, orderItem } from '$lib/server/db/schema';
-import { between, eq } from 'drizzle-orm';
+import { and, between, eq } from 'drizzle-orm';
 
 function monthRange() {
 	const now = new Date();
@@ -58,14 +58,30 @@ export const load: PageServerLoad = async ({ locals }) => {
 		channels.set(key, entry);
 	}
 
-	const totalExpenses = totalRevenue * 0.46; // simple placeholder model
-	const netProfit = Math.max(0, totalRevenue - totalExpenses);
+	// Profit: only from COMPLETED orders this month (sum of order items)
+	const completedRows = await db
+		.select({ created: order.created_at, price: orderItem.price, qty: orderItem.quantity })
+		.from(order)
+		.leftJoin(orderItem, eq(orderItem.order_id, order.id))
+		.where(and(eq(order.status, 'completed'), between(order.created_at, start, end)));
+
+	let netProfit = 0;
+	const byDayProfit = new Map<number, number>();
+	for (const r of completedRows) {
+		const amt = toNumber(r.price) * Number(r.qty ?? 0);
+		netProfit += amt;
+		const d = new Date(r.created as any).getDate();
+		byDayProfit.set(d, (byDayProfit.get(d) ?? 0) + amt);
+	}
+
+	// Keep a simple visual expense model based on revenue
+	const totalExpenses = totalRevenue * 0.46;
 	const profitMargin = totalRevenue ? (netProfit / totalRevenue) * 100 : 0;
 
 	const daysInMonth = end.getDate();
 	const revenueSeries = Array.from({ length: daysInMonth }, (_, i) => byDayRevenue.get(i + 1) ?? 0);
 	const expenseSeries = revenueSeries.map((v) => v * 0.46);
-	const profitSeries = revenueSeries.map((v, i) => Math.max(0, v - expenseSeries[i]));
+	const profitSeries = Array.from({ length: daysInMonth }, (_, i) => byDayProfit.get(i + 1) ?? 0);
 
 	// Expense categories (derived split for visuals only)
 	const expenseCats = {

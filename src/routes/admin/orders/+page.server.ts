@@ -6,7 +6,8 @@ import {
 	orderItem,
 	product,
 	accounts,
-	inventoryLog
+	inventoryLog,
+	payment
 } from '$lib/server/db/schema';
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 
@@ -152,7 +153,46 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		const orderId = Number(fd.get('order_id'));
 		if (!orderId) return fail(400, { message: 'Invalid order id' });
-		await db.update(orderTable).set({ status: 'completed' }).where(eq(orderTable.id, orderId));
+
+		try {
+			await db.transaction(async (tx) => {
+				// Mark order as completed
+				await tx.update(orderTable).set({ status: 'completed' }).where(eq(orderTable.id, orderId));
+
+				// Compute order total from items
+				const items = await tx
+					.select({ qty: orderItem.quantity, price: orderItem.price })
+					.from(orderItem)
+					.where(eq(orderItem.order_id, orderId));
+
+				const toNumber = (v: unknown) => parseFloat((v as any) ?? '0') || 0;
+				const total = items.reduce((sum, it) => sum + toNumber(it.price) * Number(it.qty ?? 0), 0);
+
+				// Upsert payment record for this order
+				const existing = await tx
+					.select({ id: payment.id })
+					.from(payment)
+					.where(eq(payment.order_id, orderId));
+
+				if (existing.length) {
+					await tx
+						.update(payment)
+						.set({ amount: String(total), status: 'Paid', date: new Date() })
+						.where(eq(payment.id, existing[0].id));
+				} else {
+					await tx.insert(payment).values({
+						order_id: orderId,
+						amount: String(total),
+						method: 'Cash',
+						status: 'Paid',
+						date: new Date()
+					});
+				}
+			});
+		} catch (e) {
+			return fail(500, { message: 'Failed to complete order' });
+		}
+
 		return { success: true };
 	}
 };
