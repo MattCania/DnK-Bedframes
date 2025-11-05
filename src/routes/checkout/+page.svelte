@@ -33,7 +33,7 @@
 
 	const BASE_FEE = 200;
 	const RATE_PER_KM = 15;
-	const FREE_SHIPPING_THRESHOLD = 2000; // Match server threshold
+	// const FREE_SHIPPING_THRESHOLD = 2000;
 
 	let calculatedDistance: number | null = null;
 	let calculatedShippingFee = data.shippingFee ?? 0;
@@ -65,7 +65,7 @@
 			Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
 		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		const distance = R * c; // Distance in kilometers
+		const distance = R * c; 
 
 		return distance;
 	}
@@ -75,9 +75,9 @@
 	}
 
 	function calculateShippingFee(distanceKm: number): number {
-		if (itemsTotal >= FREE_SHIPPING_THRESHOLD) {
-			return 0;
-		}
+		// if (itemsTotal >= FREE_SHIPPING_THRESHOLD) {
+		// 	return 0;
+		// }
 		const fee = BASE_FEE + distanceKm * RATE_PER_KM;
 		return Math.round(fee * 100) / 100;
 	}
@@ -215,7 +215,7 @@
 
 							<!-- {#if itemsTotal < FREE_SHIPPING_THRESHOLD && FREE_SHIPPING_THRESHOLD - itemsTotal < 500}
 								<div class="text-xs text-blue-600">
-									💡 Add PHP {(FREE_SHIPPING_THRESHOLD - itemsTotal).toFixed(2)} more for free shipping!
+									Add PHP {(FREE_SHIPPING_THRESHOLD - itemsTotal).toFixed(2)} more for free shipping!
 								</div>
 							{/if} -->
 

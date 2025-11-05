@@ -1,4 +1,3 @@
-import * as nodemailer from 'nodemailer';
 import { MAILER_EMAIL, MAILER_PASSWORD } from '$env/static/private';
 
 export type MailInput = {
@@ -13,7 +12,10 @@ export async function sendMail({ to, subject, text, html }: MailInput): Promise<
 		console.warn('Mailer credentials are not configured. Skipping email.');
 		return false;
 	}
+
 	try {
+		const nodemailer = await import('nodemailer');
+
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
@@ -29,6 +31,7 @@ export async function sendMail({ to, subject, text, html }: MailInput): Promise<
 			text,
 			html
 		});
+
 		return true;
 	} catch (err) {
 		console.error('sendMail failed:', err);
