@@ -91,10 +91,27 @@
 		{#if user}
 			<Avatar
 				id="user-drop"
-				src={`${user ? user.image : '/user-profile.jpg'}`}
-				class="ml-4 cursor-pointer"
-				dot={{ color: 'green' }}
-			/>
+				class="ml-4 cursor-pointer overflow-hidden rounded-full"
+			>
+				{#if user.image && user.image.trim() !== ''}
+					<img
+						src={user.image}
+						alt={user.name ?? 'User'}
+						class="h-full w-full rounded-full object-cover"
+					/>
+				{:else}
+					<div
+						class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-600 font-semibold text-white uppercase"
+					>
+						{user.name
+							?.split(' ')
+							.map((n) => n[0])
+							.join('')
+							.slice(0, 2)}
+					</div>
+				{/if}
+			</Avatar>
+
 			<Dropdown triggeredBy="#user-drop">
 				<DropdownHeader>
 					<span class="block text-sm">{user.name}</span>
@@ -107,7 +124,6 @@
 					<DropdownItem href="/account">Account</DropdownItem>
 					<DropdownItem href="/purchases">Purchases</DropdownItem>
 					<DropdownItem href="/reviews">Reviews</DropdownItem>
-					<!-- <DropdownItem href="/settings">Settings</DropdownItem> -->
 				</DropdownGroup>
 				<DropdownGroup>
 					<DropdownItem class="w-full text-start" onclick={() => signOut()}>Sign out</DropdownItem>

@@ -89,31 +89,24 @@
 		editMode = false;
 	}
 
-	// ----------------------------
-	// Map / Modal / Reverse Geocode
-	// ----------------------------
 	let mapModalOpen = false;
 	let leafletLoaded = false;
-	let L; // leaflet namespace
+	let L;
 	let map;
 	let marker = null;
 
-	// preview strings shown in modal after reverse geocode
 	let previewAddress = '';
 	let previewLat = null;
 	let previewLng = null;
 
 	const MAP_CONTAINER_ID = 'profileAddressMap';
-	const DEFAULT_CENTER = [14.5995, 120.9842]; // Manila
+	const DEFAULT_CENTER = [14.5995, 120.9842];
 
-	// Load Leaflet only once and initialize map when called
 	async function ensureLeafletLoaded() {
 		if (!leafletLoaded) {
-			// dynamic import to avoid SSR issues
 			L = (await import('leaflet')).default ?? (await import('leaflet'));
 			await import('leaflet/dist/leaflet.css');
 			
-			// Fix default marker icon paths
 			delete L.Icon.Default.prototype._getIconUrl;
 			L.Icon.Default.mergeOptions({
 				iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -128,7 +121,6 @@
 	async function initMap() {
 		if (!leafletLoaded) await ensureLeafletLoaded();
 		
-		// Destroy existing map if it exists
 		if (map) {
 			try {
 				map.off();
@@ -140,14 +132,12 @@
 			}
 		}
 
-		// Ensure the container exists
 		const container = document.getElementById(MAP_CONTAINER_ID);
 		if (!container) {
 			console.error('Map container not found');
 			return;
 		}
 
-		// create map
 		map = L.map(MAP_CONTAINER_ID, {
 			center: DEFAULT_CENTER,
 			zoom: 11,
@@ -159,20 +149,16 @@
 			attribution: '&copy; OpenStreetMap contributors'
 		}).addTo(map);
 
-		// click handler
 		map.on('click', async (e) => {
 			const { lat, lng } = e.latlng;
 
-			// place marker
 			if (marker) {
 				marker.setLatLng([lat, lng]);
 			} else {
 				marker = L.marker([lat, lng]).addTo(map);
 			}
 
-			// run reverse geocode and set preview
 			await reverseGeocode(lat, lng);
-			// show popup with quick preview and hint
 			const popupContent = `<div style="max-width:220px;font-size:0.9rem">
 				<strong>Selected:</strong><br/>
 				${escapeHtml(previewAddress || `${lat.toFixed(5)}, ${lng.toFixed(5)}`)}
@@ -181,7 +167,6 @@
 			marker.bindPopup(popupContent).openPopup();
 		});
 
-		// Fix size after initialization
 		setTimeout(() => {
 			if (map) {
 				map.invalidateSize();
@@ -189,13 +174,11 @@
 		}, 100);
 	}
 
-	// reverse geocode using Nominatim
 	async function reverseGeocode(lat, lng) {
 		previewLat = lat;
 		previewLng = lng;
-		previewAddress = ''; // reset while fetching
+		previewAddress = '';
 		try {
-			// Nominatim reverse endpoint
 			const url = new URL('https://nominatim.openstreetmap.org/reverse');
 			url.searchParams.set('lat', String(lat));
 			url.searchParams.set('lon', String(lng));
@@ -211,10 +194,8 @@
 			if (!res.ok) throw new Error('Reverse geocoding failed');
 			const json = await res.json();
 
-			// Build a readable address from returned fields if possible
 			let display = json.display_name ?? '';
 			if (!display && json.address) {
-				// attempt to compose a reasonable address
 				const a = json.address;
 				const parts = [
 					a.road || a.pedestrian || a.cycleway || a.footway || a.neighbourhood,
@@ -233,24 +214,20 @@
 		}
 	}
 
-	// open modal and prepare map
 	async function openMapPicker() {
 		mapModalOpen = true;
 		
-		// Wait for modal to fully render
 		await tick();
 		await new Promise(resolve => setTimeout(resolve, 150));
 		
 		await ensureLeafletLoaded();
 		await initMap();
 		
-		// Additional wait and size fix
 		await new Promise(resolve => setTimeout(resolve, 200));
 		
 		if (map) {
 			map.invalidateSize();
 			
-			// If profileData.address already contains coordinates, try to parse and set marker
 			const coords = parseCoordsFromAddress(profileData.address);
 			if (coords) {
 				const [lat, lng] = coords;
@@ -271,12 +248,10 @@
 
 	function applySelectedAddress() {
 		if (!previewAddress || previewLat == null || previewLng == null) return;
-		// format: "Address text (lat, lng)"
 		profileData.address = `${previewAddress} (${previewLat.toFixed(5)}, ${previewLng.toFixed(5)})`;
 		mapModalOpen = false;
 	}
 
-	// small helper to parse coords from previous stored profileData.address if using format like "... (lat, lng)"
 	function parseCoordsFromAddress(addr) {
 		if (!addr) return null;
 		const m = addr.match(/\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s*$/);
@@ -286,7 +261,6 @@
 		return null;
 	}
 
-	// escape helper for popup content (very small)
 	function escapeHtml(str) {
 		if (!str) return '';
 		return String(str)
@@ -297,7 +271,6 @@
 			.replaceAll("'", '&#039;');
 	}
 
-	// optional cleanup on component destroy
 	onDestroy(() => {
 		try {
 			if (map) {
@@ -306,12 +279,10 @@
 				map = null;
 			}
 		} catch (e) {
-			// ignore
+			// Ignore, error endpoint
 		}
 	});
 
-	// expose console for debugging (optional)
-	console.log(data);
 </script>
 
 <div class="min-h-screen bg-white pt-22">

@@ -91,13 +91,9 @@
 										<div class="font-medium">{item.name}</div>
 										<div class="grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 text-xs">
 											<div class="text-zinc-400">Color:</div>
-											<select class="h-7 w-32 rounded border-zinc-700 bg-zinc-900 text-sm" disabled>
-												<option selected>{item.colors?.[0] ?? '—'}</option>
-											</select>
+												<span class="text-sm font-medium">{item.colors?.[0] ?? '—'}</span>
 											<div class="text-zinc-400">Quantity:</div>
-											<select class="h-7 w-20 rounded border-zinc-700 bg-zinc-900 text-sm" disabled>
-												<option selected>{item.quantity}</option>
-											</select>
+												<span class="text-sm font-medium">{item.quantity}</span>
 										</div>
 									</div>
 								</div>

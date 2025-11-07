@@ -26,27 +26,56 @@
 			return '';
 		}
 	}
+
 	function starRow(n: number) {
 		return Array.from({ length: 5 }, (_, i) => i < n);
 	}
 
-	function filtered() {
-		return (data.items || []).filter((i) => {
-			const q = search.trim().toLowerCase();
-			const text = `${i.customer} ${i.product} ${i.comment}`.toLowerCase();
-			const qOk = q ? text.includes(q) : true;
-			const sOk = ratingStar === 'All' ? true : i.rating === ratingStar;
-			const stOk = ratingStatus === 'All' ? true : i.status === ratingStatus;
-			const d = new Date(i.date);
-			const fromOk = dateFrom ? d >= new Date(dateFrom) : true;
-			const toOk = dateTo ? d <= new Date(dateTo) : true;
-			return qOk && sOk && stOk && fromOk && toOk;
+	type Review = {
+		reviewId: string;
+		customer: string;
+		product: string;
+		rating: number;
+		comment: string;
+		date: any;
+		status: 'Approved' | 'Pending' | 'Flagged';
+	};
+
+	// Core function: filters and sorts reviews
+	function filterAndSortReviews(
+		reviews: Review[],
+		ratingStar: 'All' | 1 | 2 | 3 | 4 | 5,
+		dateFrom: string,
+		dateTo: string
+	): Review[] {
+		const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : null;
+		const to = dateTo ? new Date(dateTo + 'T23:59:59.999') : null;
+
+		const filtered = reviews.filter((r) => {
+			// Filter by rating (if not 'All')
+			if (ratingStar !== 'All' && r.rating !== ratingStar) return false;
+
+			// Filter by date range
+			const d = new Date(r.date);
+			if (isNaN(d.getTime())) return false;
+			if (from && d < from) return false;
+			if (to && d > to) return false;
+
+			return true;
 		});
+
+		// Sort by most recent date (newest first)
+		return filtered.sort(
+			(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+		);
 	}
 
 	function maxDist() {
 		return Math.max(1, ...data.distribution.map((d) => d.count));
 	}
+
+	// Reactive derived list
+	$: filteredReviews = filterAndSortReviews(data.items, ratingStar, dateFrom, dateTo);
 </script>
 
 <section class="min-h-screen bg-zinc-900 p-4 text-white">
@@ -96,6 +125,7 @@
 			</select>
 		</div>
 	</div>
+
 	<div class="rounded-lg border border-zinc-700 bg-zinc-800">
 		<div class="px-4 py-3 text-lg font-semibold">Average Rating</div>
 		<div class="border-t border-zinc-700 px-4 py-3">
@@ -129,11 +159,10 @@
 					<th class="px-4 py-2">Comment</th>
 					<th class="px-4 py-2">Date</th>
 					<th class="px-4 py-2">Status</th>
-					<!-- <th class="px-4 py-2">Action</th> -->
 				</tr>
 			</thead>
 			<tbody>
-				{#each filtered() as r}
+				{#each filteredReviews as r}
 					<tr class="border-t border-zinc-700">
 						<td class="px-4 py-2">{r.reviewId}</td>
 						<td class="px-4 py-2">{r.customer}</td>
@@ -150,10 +179,11 @@
 										stroke-width="2"
 										stroke-linecap="round"
 										stroke-linejoin="round"
-										><polygon
-											points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"
-										/></svg
 									>
+										<polygon
+											points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"
+										/>
+									</svg>
 								{/each}
 							</div>
 						</td>
@@ -165,18 +195,20 @@
 								class:!bg-green-700={r.status === 'Approved'}
 								class:!bg-yellow-700={r.status === 'Pending'}
 								class:!bg-red-700={r.status === 'Flagged'}
-								style="background-color: rgb(63,63,70);">{r.status}</span
+								style="background-color: rgb(63,63,70);"
 							>
+								{r.status}
+							</span>
 						</td>
-						<!-- <td class="px-4 py-2"
-							><button class="rounded bg-zinc-700 px-3 py-1 text-xs">View</button></td
-						> -->
 					</tr>
 				{/each}
-				{#if filtered().length === 0}
-					<tr
-						><td colspan="8" class="px-4 py-6 text-center text-zinc-400">No feedback found.</td></tr
-					>
+
+				{#if filteredReviews.length === 0}
+					<tr>
+						<td colspan="8" class="px-4 py-6 text-center text-zinc-400">
+							No feedback found.
+						</td>
+					</tr>
 				{/if}
 			</tbody>
 		</table>

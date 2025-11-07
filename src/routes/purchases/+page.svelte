@@ -118,35 +118,14 @@
 											<div class="text-base font-semibold text-gray-900">{item.name}</div>
 											<div class="grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 text-xs">
 												<div class="text-gray-500">Color:</div>
-												<select class="h-auto w-28 rounded border-gray-300 text-sm" disabled>
-													<option selected>{item.colors?.[0] ?? '—'}</option>
-												</select>
+												<span class="text-sm font-medium">{item.colors?.[0] ?? '—'}</span>
 												<div class="text-gray-500">Quantity:</div>
 												{#if tab === 'pending'}
-													<div class="flex items-center gap-2">
-														<form method="POST" action="?/decrement" use:enhance={onEnhance}>
-															<input type="hidden" name="order_item_id" value={item.order_item_id} />
-															<button
-																type="submit"
-																class="h-6 w-6 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-																>-</button
-															>
-														</form>
-														<span class="w-8 text-center text-sm font-medium">{item.quantity}</span>
-														<form method="POST" action="?/increment" use:enhance={onEnhance}>
-															<input type="hidden" name="order_item_id" value={item.order_item_id} />
-															<button
-																type="submit"
-																class="h-6 w-6 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-																disabled={item.quantity >= item.stock}
-																>+</button
-															>
-														</form>
-													</div>
+														<span class="w-8 text-start text-sm font-medium">{item.quantity}</span>
 												{:else}
-													<select class="h-auto w-20 rounded border-gray-300 text-sm" disabled>
-														<option selected>{item.quantity}</option>
-													</select>
+													<!-- <select class="h-auto w-20 rounded border-gray-300 text-sm" disabled> -->
+														<span class="w-8 text-start text-sm font-medium">{item.quantity}</span>
+													<!-- </select> -->
 												{/if}
 											</div>
 										</div>
