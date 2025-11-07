@@ -23,10 +23,9 @@
 	let showPassword = false;
 	let isSubmitting = false;
 
-	// Map picker state
 	let mapModalOpen = false;
 	let leafletLoaded = false;
-	let L; // leaflet namespace
+	let L;
 	let map;
 	let marker = null;
 	let previewAddress = '';
@@ -34,15 +33,13 @@
 	let previewLng = null;
 
 	const MAP_CONTAINER_ID = 'registrationAddressMap';
-	const DEFAULT_CENTER = [14.5995, 120.9842]; // Manila
+	const DEFAULT_CENTER = [14.5995, 120.9842];
 
-	// Load Leaflet
 	async function ensureLeafletLoaded() {
 		if (!leafletLoaded) {
 			L = (await import('leaflet')).default ?? (await import('leaflet'));
 			await import('leaflet/dist/leaflet.css');
 			
-			// Fix default marker icon paths
 			delete L.Icon.Default.prototype._getIconUrl;
 			L.Icon.Default.mergeOptions({
 				iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -57,7 +54,6 @@
 	async function initMap() {
 		if (!leafletLoaded) await ensureLeafletLoaded();
 		
-		// Destroy existing map if it exists
 		if (map) {
 			try {
 				map.off();
@@ -86,7 +82,6 @@
 			attribution: '&copy; OpenStreetMap contributors'
 		}).addTo(map);
 
-		// Click handler
 		map.on('click', async (e) => {
 			const { lat, lng } = e.latlng;
 
@@ -223,9 +218,6 @@
 </script>
 
 <section class="mx-auto my-4 mt-64 md:mt-40 flex flex-col justify-center items-center min-h-screen w-full pb-20 p-8">
-	<!-- <section class="my-auto mr-0 ml-auto flex h-24 w-24 flex-col px-8">
-		<img src="/logo.png" alt="Logo" />
-	</section> -->
 <Card class="flex w-full md:w-1/2 max-w-3xl h-fit p-4 md:p-8 mx-auto">
 		<form 
 			class="flex flex-col space-y-6" 
@@ -243,14 +235,12 @@
 				Create Your Account
 			</h3>
 
-			<!-- General Error Alert -->
 			{#if form?.errors?.general}
 				<Alert color="red" class="mb-4">
 					<span class="font-medium">Error!</span> {form.errors.general}
 				</Alert>
 			{/if}
 
-			<!-- Email Field -->
 			<Label class="space-y-2">
 				<span>Email Address *</span>
 				<Input 
@@ -424,7 +414,6 @@
 	</Card>
 </section>
 
-<!-- Map Picker Modal -->
 <Modal bind:open={mapModalOpen} size="xl" dismissable={false}>
 	<div class="p-4">
 		<h3 class="text-lg font-semibold mb-2">Select Your Location</h3>

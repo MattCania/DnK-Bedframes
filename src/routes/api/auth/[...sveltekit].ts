@@ -1,9 +1,12 @@
 import { SvelteKitAuth } from '@auth/sveltekit';
 import Google from '@auth/core/providers/google';
+import Credentials from '@auth/core/providers/credentials';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET } from '$env/static/private';
 import { db } from '$lib/server/db';
+import { accounts } from '$lib/server/db/schema';
 import { registerAccount } from '../register/helper/db';
-import Facebook from '@auth/sveltekit/providers/facebook';
+import { verify } from '@node-rs/argon2';
+import { eq, or } from 'drizzle-orm';
 
 export const { handle, signIn, signOut } = SvelteKitAuth({
 	providers: [
@@ -11,9 +14,68 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 			clientId: GOOGLE_CLIENT_ID,
 			clientSecret: GOOGLE_CLIENT_SECRET
 		}),
-		// Facebook({
-		// 	clientId
-		// })
+		Credentials({
+			id: 'credentials',
+			name: 'Credentials',
+			credentials: {
+				user: { label: 'Email or Contact Number', type: 'text' },
+				password: { label: 'Password', type: 'password' }
+			},
+			async authorize(credentials) {
+				if (!credentials?.user || !credentials?.password) {
+					return null;
+				}
+
+				const user = credentials.user as string;
+				const password = credentials.password as string;
+
+				try {
+					// Find user by email or contact number
+					const [foundUser] = await db
+						.select()
+						.from(accounts)
+						.where(
+							or(
+								eq(accounts.email, user),
+								eq(accounts.contacts, user)
+							)
+						)
+						.limit(1);
+
+					// User not found
+					if (!foundUser) {
+						return null;
+					}
+
+					// Check if user registered with OAuth (no password)
+					if (!foundUser.password) {
+						throw new Error('This account uses social login. Please sign in with Google.');
+					}
+
+					// Verify password
+					const validPassword = await verify(foundUser.password, password, {
+						memoryCost: 19456,
+						timeCost: 2,
+						outputLen: 32,
+						parallelism: 1
+					});
+
+					if (!validPassword) {
+						return null;
+					}
+
+					// Return user object for JWT
+					return {
+						id: foundUser.id.toString(),
+						email: foundUser.email,
+						name: `${foundUser.firstname} ${foundUser.lastname}`.trim()
+					};
+				} catch (error) {
+					console.error('Authorization error:', error);
+					return null;
+				}
+			}
+		})
 	],
 	secret: AUTH_SECRET,
 	pages: {
@@ -24,33 +86,33 @@ export const { handle, signIn, signOut } = SvelteKitAuth({
 		async signIn({ user, account }) {
 			if (!user || !account) return false;
 
-			const exists = await db.query.accounts.findFirst({
-				where: (acc, { eq }) => eq(acc.email, user.email ?? '')
-			});
-
-			if (!exists) {
-				await registerAccount({
-					email: user.email!,
-					role: 'user',
-					provider: account.provider ?? 'google',
-					provider_id: account.providerAccountId ?? '',
-					firstname: user.name?.split(' ')[0] ?? 'Unknown',
-					lastname: user.name?.split(' ').slice(1).join(' ') ?? '',
-					middlename: null,
-					contacts: null,
-					birthday: null,
-					address: null,
-					gender: null
+			// Only create account for OAuth providers (not credentials)
+			if (account.provider !== 'credentials') {
+				const exists = await db.query.accounts.findFirst({
+					where: (acc, { eq }) => eq(acc.email, user.email ?? '')
 				});
-			}
 
-			// Do not redirect here to avoid interfering with the OAuth flow.
-			// We'll handle admin redirection in the app layout after the session is established.
+				if (!exists) {
+					await registerAccount({
+						email: user.email!,
+						role: 'user',
+						provider: account.provider ?? 'google',
+						provider_id: account.providerAccountId ?? '',
+						firstname: user.name?.split(' ')[0] ?? 'Unknown',
+						lastname: user.name?.split(' ').slice(1).join(' ') ?? '',
+						middlename: null,
+						contacts: null,
+						birthday: null,
+						address: null,
+						gender: null
+					});
+				}
+			}
 
 			return true;
 		},
 
-		async jwt({ token, user }) {
+		async jwt({ token, user, account }) {
 			if (user) {
 				const acc = await db.query.accounts.findFirst({
 					where: (a, { eq }) => eq(a.email, user.email ?? '')

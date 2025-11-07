@@ -2,28 +2,60 @@
 	import { Card, Button, Label, Input, Checkbox, Heading, P, Alert } from 'flowbite-svelte';
 	import { signIn } from '@auth/sveltekit/client';
 	import { ArrowRightOutline } from 'flowbite-svelte-icons';
-	import { enhance } from '$app/forms';
-	import type { ActionData } from './$types';
 	import { page } from '$app/stores';
 
-	export let form: ActionData;
-
-	const formValues = {
-		user: form?.data?.user || '',
+	let formValues = {
+		user: '',
 		password: ''
 	};
 
 	let showPassword = false;
 	let isSubmitting = false;
+	let loginError = '';
 
-	// Check if user just registered
+	const togglePassword = () => {
+		showPassword = !showPassword;
+	};
+
 	$: justRegistered = $page.url.searchParams.get('registered') === 'true';
+
+	async function handleLogin() {
+		if (!formValues.user || !formValues.password) {
+			loginError = 'Please fill in all fields';
+			return;
+		}
+
+		isSubmitting = true;
+		loginError = '';
+
+		try {
+			const result = await signIn('credentials', {
+				user: formValues.user,
+				password: formValues.password,
+				redirect: false
+			});
+
+			if (result?.error) {
+				loginError =
+					result.error === 'CredentialsSignin'
+						? 'Invalid credentials. Please check your email/contact number and password.'
+						: 'An error occurred during login. Please try again.';
+			} else {
+				window.location.href = '/';
+			}
+		} catch (error) {
+			console.error('Login error:', error);
+			loginError = 'An unexpected error occurred. Please try again later.';
+		} finally {
+			isSubmitting = false;
+		}
+	}
 </script>
 
 <section
 	class="flex min-h-screen w-full flex-col items-center justify-center gap-0 bg-zinc-100 pt-32 lg:flex-row lg:pt-24"
 >
-	<div class="my-0 flex h-1/2 w-auto flex-col pl-32 text-center">
+	<div class="my-0 flex h-1/2 w-auto flex-col px-8 text-center lg:pl-32">
 		<Heading tag="h1" class="mb-4 text-4xl font-extrabold md:text-5xl lg:text-6xl">
 			Perfect for Families, Ideal for Small Spaces.
 		</Heading>
@@ -38,32 +70,26 @@
 	</div>
 
 	<Card class="mx-auto my-4 p-4 sm:mx-16 sm:p-6 md:my-auto md:mr-32 md:p-8">
-		<form 
-			class="flex flex-col space-y-6" 
-			method="POST"
-			action="?/login"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
-					isSubmitting = false;
-				};
+		<form
+			class="flex flex-col space-y-6"
+			onsubmit={(e) => {
+				e.preventDefault();
+				handleLogin();
 			}}
 		>
 			<h3 class="mx-auto text-2xl font-medium text-gray-900 dark:text-white">Login</h3>
 
-			<!-- Success message for registration -->
 			{#if justRegistered}
 				<Alert color="green" class="mb-4">
-					<span class="font-medium">Registration successful!</span> 
+					<span class="font-medium">Registration successful!</span>
 					Please log in with your credentials.
 				</Alert>
 			{/if}
 
-			<!-- General Error Alert -->
-			{#if form?.errors?.general}
+			{#if loginError}
 				<Alert color="red" class="mb-4">
-					<span class="font-medium">Error!</span> {form.errors.general}
+					<span class="font-medium">Error!</span>
+					{loginError}
 				</Alert>
 			{/if}
 
@@ -75,11 +101,7 @@
 					bind:value={formValues.user}
 					placeholder="user@gmail.com or +63 912 345 6789"
 					required
-					color={form?.errors?.user ? 'red' : 'base'}
 				/>
-				{#if form?.errors?.user}
-					<p class="text-sm text-red-600 dark:text-red-500">{form.errors.user}</p>
-				{/if}
 			</Label>
 
 			<Label class="space-y-2">
@@ -90,15 +112,12 @@
 					bind:value={formValues.password}
 					placeholder="•••••"
 					required
-					color={form?.errors?.password ? 'red' : 'base'}
 				/>
-				{#if form?.errors?.password}
-					<p class="text-sm text-red-600 dark:text-red-500">{form.errors.password}</p>
-				{/if}
 			</Label>
 
 			<div class="flex items-start">
 				<Checkbox bind:checked={showPassword}>Show Password</Checkbox>
+
 				<a
 					href="/verify-email"
 					class="ms-auto text-sm text-zinc-700 hover:underline dark:text-zinc-500"
@@ -147,11 +166,8 @@
 			</Button>
 
 			<div class="text-sm font-medium text-gray-500 dark:text-gray-300">
-				Not registered? 
-				<a
-					href="/register"
-					class="text-blue-700 hover:underline dark:text-blue-500"
-				>
+				Not registered?
+				<a href="/register" class="text-blue-700 hover:underline dark:text-blue-500">
 					Create account
 				</a>
 			</div>

@@ -118,11 +118,11 @@
 											<div class="text-base font-semibold text-gray-900">{item.name}</div>
 											<div class="grid grid-cols-[auto,1fr] items-center gap-x-3 gap-y-1 text-xs">
 												<div class="text-gray-500">Color:</div>
-												<select class="h-7 w-28 rounded border-gray-300 text-sm" disabled>
+												<select class="h-auto w-28 rounded border-gray-300 text-sm" disabled>
 													<option selected>{item.colors?.[0] ?? '—'}</option>
 												</select>
 												<div class="text-gray-500">Quantity:</div>
-												<select class="h-7 w-20 rounded border-gray-300 text-sm" disabled>
+												<select class="h-auto w-20 rounded border-gray-300 text-sm" disabled>
 													<option selected>{item.quantity}</option>
 												</select>
 											</div>

@@ -54,9 +54,9 @@
 			<div class="mt-1 text-xs text-zinc-400">12% from This Month</div>
 		</div>
 		<div class="rounded-lg bg-gradient-to-br from-purple-700/60 to-purple-900/40 p-4">
-			<div class="text-xs text-zinc-300">Profit Margin</div>
+			<div class="text-xs text-zinc-300">Cash Remittance</div>
 			<div class="mt-2 text-2xl font-semibold">{data.metrics.profitMargin.toFixed(0)}%</div>
-			<div class="mt-1 text-xs text-zinc-400">8% from This Month</div>
+			<div class="mt-1 text-xs text-zinc-400"> Transactions</div>
 		</div>
 	</div>
 

@@ -125,7 +125,7 @@ export const actions: Actions = {
 				.values({
 					email: email!,
 					password: hashedPassword,
-					role: 'customer', 
+					role: 'user', 
 					provider: 'email',
 					provider_id: email!,
 					firstname: firstName!,
