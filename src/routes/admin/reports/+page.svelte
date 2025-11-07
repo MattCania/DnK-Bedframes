@@ -240,7 +240,7 @@
 	</div>
 
 	<!-- Bottom row -->
-	<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+	<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-1">
 		<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4 md:col-span-2">
 			<div class="mb-3 font-semibold">Customer Inquiries</div>
 			{#if (data.inquiries?.length ?? 0) === 0}
@@ -257,7 +257,7 @@
 				</ul>
 			{/if}
 		</div>
-		<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
+		<!-- <div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
 			<div class="mb-3 font-semibold">From Contact Us form</div>
 			<p class="text-sm text-zinc-400">
 				This section can be wired to your contact form submissions.
@@ -266,12 +266,12 @@
 				<button class="rounded bg-zinc-700 px-3 py-1 text-sm">Reply</button>
 				<button class="rounded bg-zinc-700 px-3 py-1 text-sm">Mark as replied</button>
 			</div>
-		</div>
+		</div> -->
 	</div>
 
-	<div class="mt-4">
+	<!-- <div class="mt-4">
 		<button on:click={printPDF} class="rounded bg-zinc-700 px-3 py-2 text-sm">Export PDF</button>
-	</div>
+	</div> -->
 
 	{#if showLowStock}
 		<div class="fixed inset-0 z-50 flex items-center justify-center">
@@ -319,7 +319,6 @@
 
 <style>
 	@media print {
-		/* Basic print-friendly theme */
 		section {
 			background: white !important;
 			color: black !important;

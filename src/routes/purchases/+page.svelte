@@ -216,11 +216,11 @@
 								<div class="text-xs text-gray-600">Awaiting confirmation</div>
 								<form method="POST" action="?/cancel" use:enhance={onEnhance}>
 									<input type="hidden" name="order_id" value={order.id} />
-									<button
+									<!-- <button
 										type="submit"
 										class="rounded bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
 										>Cancel Order</button
-									>
+									> -->
 								</form>
 							</div>
 						{:else if tab === 'for_delivery'}

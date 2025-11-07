@@ -89,7 +89,7 @@
 				{#snippet icon()}
 					<UsersSolid class="h-5 w-5 text-white" />
 				{/snippet}
-				<SidebarItem href="/admin/profile" label="Profile" class="text-white hover:bg-zinc-600" />
+				<!-- <SidebarItem href="/admin/profile" label="Profile" class="text-white hover:bg-zinc-600" /> -->
 				<SidebarItem
 					href="/admin/employees"
 					label="Employees"

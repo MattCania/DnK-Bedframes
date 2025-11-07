@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { product } from '$lib/server/db/schema';
+import { inventoryLog, product } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function PATCH({ params, request }) {
@@ -69,11 +69,16 @@ export async function DELETE({ params }) {
 	}
 
 	try {
+		// Delete all logs referencing the product first
+		await db.delete(inventoryLog).where(eq(inventoryLog.product_id, id));
+
+		// Then delete the product
 		const res = await db.delete(product).where(eq(product.id, id)).returning({ id: product.id });
-		if (!res || res.length === 0) {
+
+		if (!res || res.length === 0)
 			return json({ success: false, message: 'Product not found' }, { status: 404 });
-		}
-		return json({ success: true, id });
+
+		return json({ success: true });
 	} catch (e) {
 		console.error('Failed to delete product', e);
 		return json({ success: false, message: 'Failed to delete product' }, { status: 500 });

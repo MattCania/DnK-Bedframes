@@ -80,9 +80,6 @@
 				class="h-10 w-full rounded-md bg-zinc-800 px-3 text-sm"
 			/>
 		</div>
-	</div>
-
-	<div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
 		<div>
 			<label for="ratingStar" class="mb-1 block text-sm text-zinc-300">Rating Star</label>
 			<select
@@ -98,21 +95,7 @@
 				<option value={1}>1</option>
 			</select>
 		</div>
-		<div>
-			<label for="ratingStatus" class="mb-1 block text-sm text-zinc-300">Rating Status</label>
-			<select
-				id="ratingStatus"
-				bind:value={ratingStatus}
-				class="h-10 w-full rounded-md bg-zinc-800 text-sm"
-			>
-				<option>All</option>
-				<option>Approved</option>
-				<option>Pending</option>
-				<option>Flagged</option>
-			</select>
-		</div>
 	</div>
-
 	<div class="rounded-lg border border-zinc-700 bg-zinc-800">
 		<div class="px-4 py-3 text-lg font-semibold">Average Rating</div>
 		<div class="border-t border-zinc-700 px-4 py-3">
@@ -146,7 +129,7 @@
 					<th class="px-4 py-2">Comment</th>
 					<th class="px-4 py-2">Date</th>
 					<th class="px-4 py-2">Status</th>
-					<th class="px-4 py-2">Action</th>
+					<!-- <th class="px-4 py-2">Action</th> -->
 				</tr>
 			</thead>
 			<tbody>
@@ -185,9 +168,9 @@
 								style="background-color: rgb(63,63,70);">{r.status}</span
 							>
 						</td>
-						<td class="px-4 py-2"
+						<!-- <td class="px-4 py-2"
 							><button class="rounded bg-zinc-700 px-3 py-1 text-xs">View</button></td
-						>
+						> -->
 					</tr>
 				{/each}
 				{#if filtered().length === 0}
