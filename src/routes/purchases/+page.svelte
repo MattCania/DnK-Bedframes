@@ -54,7 +54,7 @@
 			if (result.type === 'success') {
 				location.reload();
 			} else if (result.type === 'failure') {
-				const msg = result.data?.message ?? 'Unable to submit review.';
+				const msg = result.data?.message ?? 'Operation failed.';
 				alert(msg);
 			}
 		};
@@ -122,9 +122,32 @@
 													<option selected>{item.colors?.[0] ?? '—'}</option>
 												</select>
 												<div class="text-gray-500">Quantity:</div>
-												<select class="h-auto w-20 rounded border-gray-300 text-sm" disabled>
-													<option selected>{item.quantity}</option>
-												</select>
+												{#if tab === 'pending'}
+													<div class="flex items-center gap-2">
+														<form method="POST" action="?/decrement" use:enhance={onEnhance}>
+															<input type="hidden" name="order_item_id" value={item.order_item_id} />
+															<button
+																type="submit"
+																class="h-6 w-6 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+																>-</button
+															>
+														</form>
+														<span class="w-8 text-center text-sm font-medium">{item.quantity}</span>
+														<form method="POST" action="?/increment" use:enhance={onEnhance}>
+															<input type="hidden" name="order_item_id" value={item.order_item_id} />
+															<button
+																type="submit"
+																class="h-6 w-6 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+																disabled={item.quantity >= item.stock}
+																>+</button
+															>
+														</form>
+													</div>
+												{:else}
+													<select class="h-auto w-20 rounded border-gray-300 text-sm" disabled>
+														<option selected>{item.quantity}</option>
+													</select>
+												{/if}
 											</div>
 										</div>
 									</div>
@@ -188,12 +211,22 @@
 							{/each}
 						</div>
 
-						{#if tab === 'for_delivery'}
+						{#if tab === 'pending'}
+							<div class="mt-3 flex items-center justify-between">
+								<div class="text-xs text-gray-600">Awaiting confirmation</div>
+								<form method="POST" action="?/cancel" use:enhance={onEnhance}>
+									<input type="hidden" name="order_id" value={order.id} />
+									<button
+										type="submit"
+										class="rounded bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-700"
+										>Cancel Order</button
+									>
+								</form>
+							</div>
+						{:else if tab === 'for_delivery'}
 							<div class="mt-2 text-xs text-gray-600">
 								Estimated Delivery: {data.estimatedDelivery}
 							</div>
-						{:else if tab === 'pending'}
-							<div class="mt-2 text-xs text-gray-600">Awaiting confirmation</div>
 						{:else if tab === 'completed'}
 							<div class="mt-2 text-xs text-gray-600">Delivered</div>
 						{:else if tab === 'cancelled'}
@@ -270,12 +303,11 @@
 						</div>
 					</div>
 
-					<div class="mt-4 flex items-center justify-between">
-						<button type="button" class="rounded bg-red-600 px-4 py-2 text-white">Delete</button>
+					<div class="mt-4 flex items-center justify-end">
 						<button
 							type="button"
 							class="rounded bg-gray-700 px-4 py-2 text-white"
-							on:click={() => (selected = null)}>Back</button
+							on:click={() => (selected = null)}>Close</button
 						>
 					</div>
 
