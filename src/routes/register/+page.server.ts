@@ -154,7 +154,9 @@ export const actions: Actions = {
 				});
 			}
 
-			throw redirect(303, '/login?registered=true');
+			// throw redirect(303, '/login');
+
+			return {success: true}
 
 		} catch (error) {
 			if (error instanceof Response && error.status === 303) {

@@ -61,7 +61,7 @@
 			{#if $cartCount === 0}
 				<DropdownGroup>
 					<DropdownItem disabled>Your cart is empty</DropdownItem>
-					<DropdownItem href="/products">Browse products</DropdownItem>
+					<DropdownItem href="/">Browse products</DropdownItem>
 				</DropdownGroup>
 			{:else}
 				<DropdownGroup>
