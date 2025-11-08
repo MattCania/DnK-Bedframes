@@ -52,7 +52,7 @@
 	>
 		<div class="mb-6 grid gap-6 md:grid-cols-2">
 			<div>
-				<Label for="product_image" class="mb-2">Product Image</Label>
+				<Label for="product_image" class="mb-2 text-white">Product Image</Label>
 				<Input
 					type="file"
 					id="product_image"
@@ -75,10 +75,10 @@
 			</div>
 
 			<div>
-				<Label>
+				<Label class="text-white">
 					Category:
 					<Select
-						class="mt-2"
+						class="mt-2 text-white"
 						name="product_category"
 						items={categories}
 						bind:value={eventSelected}
@@ -88,27 +88,27 @@
 			</div>
 
 			<div>
-				<Label for="product_name" class="mb-2">Product Name</Label>
+				<Label for="product_name" class="mb-2 text-white">Product Name</Label>
 				<Input type="text" id="product_name" name="product_name" placeholder="Bedframe" required />
 			</div>
 
 			<div>
-				<Label for="color" class="mb-2">Color</Label>
+				<Label for="color" class="mb-2 text-white">Color</Label>
 				<Input type="text" id="color" name="product_colors" placeholder="Black" required />
 			</div>
 
 			<div>
-				<Label for="stock" class="mb-2">Stock</Label>
+				<Label for="stock" class="mb-2 text-white">Stock</Label>
 				<Input type="number" id="stock" name="product_stock" placeholder="1" required />
 			</div>
 
 			<div>
-				<Label for="price" class="mb-2">Price</Label>
+				<Label for="price" class="mb-2 text-white">Price</Label>
 				<Input type="number" id="price" name="product_price" placeholder="1" required />
 			</div>
 
 			<div>
-				<Label for="description" class="mb-2">Description</Label>
+				<Label for="description" class="mb-2 text-white">Description</Label>
 				<Textarea
 					id="description"
 					name="product_description"

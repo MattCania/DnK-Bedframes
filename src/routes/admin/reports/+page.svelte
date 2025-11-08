@@ -56,11 +56,10 @@
 		'November',
 		'December'
 	];
+
 	let month: Month = 'All';
-	let category: 'All' | 'twin' | 'full' | 'queen' | 'king' = 'All';
 	let search = '';
 
-	// Client-side pagination
 	let page = 1;
 	const pageSize = 5;
 
@@ -75,32 +74,49 @@
 			return '';
 		}
 	}
-	function filtered() {
+
+	// Filter sales
+	function filteredSales() {
 		return (data.sales || []).filter((s) => {
-			const mOk =
+			const monthOk =
 				month === 'All' ? true : new Date(s.date).getMonth() + 1 === monthNames.indexOf(month);
-			const catOk = category === 'All' ? true : true; // Category filter placeholder (can be wired to server if needed)
 			const q = search.trim().toLowerCase();
 			const text = `${s.buyer} ${s.item}`.toLowerCase();
-			const qOk = q ? text.includes(q) : true;
-			return mOk && catOk && qOk;
+			const queryOk = q ? text.includes(q) : true;
+			return monthOk && queryOk;
 		});
 	}
-	function paged() {
-		const start = (page - 1) * pageSize;
-		return filtered().slice(start, start + pageSize);
-	}
-	function pageCount() {
-		return Math.max(1, Math.ceil(filtered().length / pageSize));
+
+	// Filter inquiries
+	function filteredInquiries() {
+		return (data.inquiries || []).filter((q) => {
+			const monthOk =
+				month === 'All'
+					? true
+					: new Date(q.created_at).getMonth() + 1 === monthNames.indexOf(month);
+			const s = search.trim().toLowerCase();
+			const text = `${q.firstname ?? ''} ${q.lastname ?? ''} ${q.comment ?? ''}`.toLowerCase();
+			const queryOk = s ? text.includes(s) : true;
+			return monthOk && queryOk;
+		});
 	}
 
-	function printPDF() {
-		window.print();
+	function pagedSales() {
+		const start = (page - 1) * pageSize;
+		return filteredSales().slice(start, start + pageSize);
 	}
+
+	function pageCount() {
+		return Math.max(1, Math.ceil(filteredSales().length / pageSize));
+	}
+
+	// Reset pagination when filters change
+	$: month, search, (page = 1);
 
 	onMount(() => {
 		page = 1;
 	});
+
 	let showLowStock = false;
 
 	function openLowStock() {
@@ -115,7 +131,7 @@
 	<h1 class="mb-4 text-2xl font-bold">Customer Reports and Inquiries</h1>
 
 	<!-- Filters -->
-	<div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+	<div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
 		<div>
 			<label for="monthSel" class="mb-1 block text-sm text-zinc-300">Month:</label>
 			<select id="monthSel" bind:value={month} class="h-10 w-full rounded-md bg-zinc-800 text-sm">
@@ -124,27 +140,13 @@
 				{/each}
 			</select>
 		</div>
-		<div>
-			<label for="categorySel" class="mb-1 block text-sm text-zinc-300">Category:</label>
-			<select
-				id="categorySel"
-				bind:value={category}
-				class="h-10 w-full rounded-md bg-zinc-800 text-sm"
-			>
-				<option>All</option>
-				<option value="twin">Twin</option>
-				<option value="full">Full</option>
-				<option value="queen">Queen</option>
-				<option value="king">King</option>
-			</select>
-		</div>
 		<div class="md:col-span-2">
 			<label for="searchInput" class="mb-1 block text-sm text-zinc-300">Search:</label>
 			<input
 				id="searchInput"
 				type="search"
 				bind:value={search}
-				placeholder="Placeholder"
+				placeholder="Search buyer, item, or inquiry"
 				class="h-10 w-full rounded-md bg-zinc-800 px-3 text-sm"
 			/>
 		</div>
@@ -156,10 +158,10 @@
 			<div class="flex items-center justify-between px-4 py-3">
 				<div class="font-semibold">Sales Report</div>
 				<div class="text-xs text-zinc-400">
-					Showing {Math.min(filtered().length, (page - 1) * pageSize + 1)}–{Math.min(
+					Showing {Math.min(filteredSales().length, (page - 1) * pageSize + 1)}–{Math.min(
 						page * pageSize,
-						filtered().length
-					)} of {filtered().length}
+						filteredSales().length
+					)} of {filteredSales().length}
 				</div>
 			</div>
 			<div class="overflow-x-auto">
@@ -176,7 +178,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each paged() as r}
+						{#each pagedSales() as r}
 							<tr class="border-t border-zinc-700">
 								<td class="px-4 py-2">{r.buyer}</td>
 								<td class="px-4 py-2">{r.item}</td>
@@ -187,12 +189,13 @@
 								<td class="px-4 py-2">{r.status}</td>
 							</tr>
 						{/each}
-						{#if paged().length === 0}
+						{#if pagedSales().length === 0}
 							<tr><td class="px-4 py-6 text-center text-zinc-400" colspan="7">No results</td></tr>
 						{/if}
 					</tbody>
 				</table>
 			</div>
+
 			<!-- Pagination -->
 			<div class="flex items-center justify-center gap-1 px-4 py-3">
 				{#each Array(pageCount()) as _, i}
@@ -223,6 +226,7 @@
 					<div class="mt-2 rounded bg-zinc-700 p-2 text-xs">All stocks are good!</div>
 				{/if}
 			</div>
+
 			<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
 				<div class="mb-2 text-sm text-zinc-300">Quick Insights</div>
 				<div class="grid grid-cols-2 gap-3 text-sm">
@@ -239,15 +243,14 @@
 		</div>
 	</div>
 
-	<!-- Bottom row -->
-	<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-1">
-		<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4 md:col-span-2">
+	<div class="mt-4">
+		<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
 			<div class="mb-3 font-semibold">Customer Inquiries</div>
-			{#if (data.inquiries?.length ?? 0) === 0}
-				<p class="text-sm text-zinc-400">No recent inquiries.</p>
+			{#if filteredInquiries().length === 0}
+				<p class="text-sm text-zinc-400">No inquiries found.</p>
 			{:else}
 				<ul class="space-y-3">
-					{#each data.inquiries as q}
+					{#each filteredInquiries() as q}
 						<li class="rounded border border-zinc-700 p-3">
 							<div class="text-sm font-medium">{q.firstname ?? ''} {q.lastname ?? ''}</div>
 							<div class="text-xs text-zinc-400">{fmtDate(q.created_at)}</div>
@@ -257,21 +260,7 @@
 				</ul>
 			{/if}
 		</div>
-		<!-- <div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
-			<div class="mb-3 font-semibold">From Contact Us form</div>
-			<p class="text-sm text-zinc-400">
-				This section can be wired to your contact form submissions.
-			</p>
-			<div class="mt-3 flex gap-2">
-				<button class="rounded bg-zinc-700 px-3 py-1 text-sm">Reply</button>
-				<button class="rounded bg-zinc-700 px-3 py-1 text-sm">Mark as replied</button>
-			</div>
-		</div> -->
 	</div>
-
-	<!-- <div class="mt-4">
-		<button on:click={printPDF} class="rounded bg-zinc-700 px-3 py-2 text-sm">Export PDF</button>
-	</div> -->
 
 	{#if showLowStock}
 		<div class="fixed inset-0 z-50 flex items-center justify-center">

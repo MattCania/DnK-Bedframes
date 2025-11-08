@@ -36,7 +36,6 @@
 <section class="min-h-screen bg-zinc-900 p-6 text-white">
 	<h1 class="mb-6 text-3xl font-extrabold">Overall Summary</h1>
 
-	<!-- Top KPI cards -->
 	<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
 		<div class="rounded-lg bg-gradient-to-br from-indigo-700/60 to-indigo-900/40 p-4">
 			<div class="text-xs text-zinc-300">Total Revenue</div>
@@ -53,25 +52,8 @@
 			<div class="mt-2 text-2xl font-semibold">{money(data.metrics.netProfit)}</div>
 			<div class="mt-1 text-xs text-zinc-400">12% from This Month</div>
 		</div>
-		<!-- <div class="rounded-lg bg-gradient-to-br from-purple-700/60 to-purple-900/40 p-4">
-			<div class="text-xs text-zinc-300">Cash Remittance</div>
-			<div class="mt-2 text-2xl font-semibold">{data.metrics.profitMargin.toFixed(0)}%</div>
-			<div class="mt-1 text-xs text-zinc-400"> Transactions</div>
-		</div> -->
 	</div>
 
-	<!-- Remittance summary cards -->
-	<!-- <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-		{#each data.remittances as r}
-			<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
-				<div class="text-xs text-zinc-400">{r.label}</div>
-				<div class="mt-2 text-xl font-semibold">{money(r.total)}</div>
-				<div class="text-xs text-zinc-400">{r.count} Transactions</div>
-			</div>
-		{/each}
-	</div> -->
-
-	<!-- Charts grid -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 		<div class="rounded-lg border border-zinc-700 bg-zinc-800 p-4">
 			<div class="mb-2 flex items-center justify-between">

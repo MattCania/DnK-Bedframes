@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { Button, Modal, Select } from "flowbite-svelte";
 	import { enhance } from "$app/forms";
-	import { Modal, Button } from "flowbite-svelte";
 	import { CheckCircleSolid, CloseCircleSolid } from "flowbite-svelte-icons";
 
 	export let data: { admins: any[] };
@@ -11,7 +11,7 @@
 	let showModal = false;
 	let modalMessage = '';
 	let modalSuccess = false;
-
+	
 	function fullName(a: any) {
 		return [a.firstname, a.middlename, a.lastname].filter(Boolean).join(' ').trim();
 	}
@@ -33,14 +33,14 @@
 			return '-';
 		}
 	}
-	
+
 	const onEnhance = (input?: any) => {
 		const submittedAction: string = input?.action?.pathname ?? '';
 		const fd: FormData | undefined = input?.formData;
 		return async ({ result }: any) => {
 			if (result.type === 'success') {
 				if (result.data?.success) {
-					modalMessage = result.data?.message || 'Admin demoted successfully!';
+					modalMessage = result.data?.message || 'User promoted successfully!';
 					modalSuccess = true;
 				} else {
 					modalMessage = result.data?.message || 'Action failed. Please try again.';
@@ -48,7 +48,6 @@
 				}
 				showModal = true;
 				
-				// Auto-close after 2 seconds
 				setTimeout(() => {
 					showModal = false;
 				}, 2000);
@@ -56,6 +55,7 @@
 		};
 	};
 </script>
+
 <Modal bind:open={showModal} size="xs" autoclose outsideclose>
 	<div class="text-center">
 		{#if modalSuccess}
@@ -74,13 +74,12 @@
 		</Button>
 	</div>
 </Modal>
-
 <div class="min-h-screen bg-zinc-900 text-white">
 	<div class="mx-auto max-w-6xl p-6">
 		<div class="mb-6 flex items-center justify-between gap-4">
 			<div>
-				<h1 class="text-2xl font-bold">Admins</h1>
-				<p class="text-sm text-zinc-300">All accounts with the admin role</p>
+				<h1 class="text-2xl font-bold">Users</h1>
+				<p class="text-sm text-zinc-300">All accounts with the user role</p>
 			</div>
 			<input
 				placeholder="Search by name, email, or provider"
@@ -118,7 +117,7 @@
 					{#if filtered.length === 0}
 						<tr>
 							<td colspan="7" class="px-4 py-6 text-center text-sm text-zinc-300">
-								No admin users found.
+								No users found.
 							</td>
 						</tr>
 					{:else}
@@ -133,10 +132,10 @@
 								<td class="px-4 py-3 text-sm whitespace-nowrap">{a.contacts || '-'}</td>
 								<td class="px-4 py-3 text-sm whitespace-nowrap">{fmtDate(a.created_at)}</td>
 								<td class="px-4 py-3 text-sm whitespace-nowrap">
-									<form method="POST" action="?/demote" use:enhance={onEnhance}>
+									<form method="POST" action="?/promote" use:enhance={onEnhance}>
 										<input name="id" type="text" value={a.id} hidden>
 										<button class="bg-zinc-900 rounded-lg hover:bg-zinc-600 text-white p-2" type="submit">
-											Demote
+											Promote
 										</button>
 									</form>
 								</td>

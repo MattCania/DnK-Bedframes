@@ -17,7 +17,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const { start, end } = monthRange();
 
-	// Payments this month
 	const payRows = await db
 		.select({
 			amount: payment.amount,
@@ -58,7 +57,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		channels.set(key, entry);
 	}
 
-	// Profit: only from COMPLETED orders this month (sum of order items)
 	const completedRows = await db
 		.select({ created: order.created_at, price: orderItem.price, qty: orderItem.quantity })
 		.from(order)
@@ -74,7 +72,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 		byDayProfit.set(d, (byDayProfit.get(d) ?? 0) + amt);
 	}
 
-	// Keep a simple visual expense model based on revenue
 	const totalExpenses = totalRevenue * 0.46;
 	const profitMargin = totalRevenue ? (netProfit / totalRevenue) * 100 : 0;
 
@@ -83,14 +80,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const expenseSeries = revenueSeries.map((v) => v * 0.46);
 	const profitSeries = Array.from({ length: daysInMonth }, (_, i) => byDayProfit.get(i + 1) ?? 0);
 
-	// Expense categories (derived split for visuals only)
 	const expenseCats = {
 		Materials: expenseSeries.map((v) => v * 0.5),
 		Labor: expenseSeries.map((v) => v * 0.3),
 		Shipping: expenseSeries.map((v) => v * 0.2)
 	};
 
-	// Sales by product (sum order items this month)
 	const oiRows = await db
 		.select({ price: orderItem.price, qty: orderItem.quantity, created: order.created_at })
 		.from(order)

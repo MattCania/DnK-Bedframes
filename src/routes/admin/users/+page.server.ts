@@ -5,19 +5,19 @@ import { eq } from 'drizzle-orm';
 import type { Actions } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
-	const admins = await db.select().from(accounts).where(eq(accounts.role, 'admin'));
+	const admins = await db.select().from(accounts).where(eq(accounts.role, 'user'));
 
 	return { admins };
 };
 
-
 export const actions: Actions = {
-	demote: async ({request}) => {
+	promote: async ({request}) => {
 		try {
+
 			const data = await request.formData();
 			const id = Number(data.get('id'));
 			
-			await db.update(accounts).set({role: 'user'}).where(eq(accounts.id, id))
+			await db.update(accounts).set({role: 'admin'}).where(eq(accounts.id, id))
 		
 			return {success: true}
 		}

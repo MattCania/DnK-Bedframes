@@ -13,7 +13,10 @@
 		MessagesSolid,
 		DropboxSolid,
 		UsersSolid,
-		StoreSolid
+		StoreSolid,
+
+		AnnotationSolid
+
 	} from 'flowbite-svelte-icons';
 	import { page } from '$app/state';
 	import { signOut } from '@auth/sveltekit/client';
@@ -49,7 +52,7 @@
 			</SidebarItem>
 			<SidebarItem href="/admin/reports" label="Reports" class="text-white hover:bg-zinc-600">
 				{#snippet icon()}
-					<ChartOutline class="h-5 w-5 text-white" />
+					<AnnotationSolid class="h-5 w-5 text-white" />
 				{/snippet}
 			</SidebarItem>
 			<SidebarItem href="/admin/sales" label="Sales" class="text-white hover:bg-zinc-600">
@@ -90,6 +93,11 @@
 					<UsersSolid class="h-5 w-5 text-white" />
 				{/snippet}
 				<!-- <SidebarItem href="/admin/profile" label="Profile" class="text-white hover:bg-zinc-600" /> -->
+				<SidebarItem
+					href="/admin/users"
+					label="Users"
+					class="text-white hover:bg-zinc-600"
+				/>
 				<SidebarItem
 					href="/admin/employees"
 					label="Employees"
