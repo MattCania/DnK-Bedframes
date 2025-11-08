@@ -2,7 +2,7 @@ import { SvelteKitAuth } from '@auth/sveltekit';
 import Google from '@auth/core/providers/google';
 import Credentials from '@auth/core/providers/credentials';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET } from '$env/static/private';
-import { db } from '$lib/server/db';
+import { db } from '$lib/server/db';	
 import { accounts } from '$lib/server/db/schema';
 import { registerAccount } from '../register/helper/db';
 import { verify } from '@node-rs/argon2';
