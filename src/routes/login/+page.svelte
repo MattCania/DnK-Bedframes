@@ -94,12 +94,12 @@
 			{/if}
 
 			<Label class="space-y-2">
-				<span>Email or Contact Number</span>
+				<span>Email</span>
 				<Input
 					type="text"
 					name="user"
 					bind:value={formValues.user}
-					placeholder="user@gmail.com or +63 912 345 6789"
+					placeholder="user@gmail.com"
 					required
 				/>
 			</Label>
