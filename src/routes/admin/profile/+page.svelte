@@ -81,7 +81,7 @@
 			};
 			originalData = { ...profileData };
 			editMode = false;
-			alert('Profile updated successfully!');
+			// alert('Profile updated successfully!');
 		} catch (e) {
 			console.error(e);
 		} finally {

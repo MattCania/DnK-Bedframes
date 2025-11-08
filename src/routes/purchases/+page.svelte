@@ -55,7 +55,7 @@
 				location.reload();
 			} else if (result.type === 'failure') {
 				const msg = result.data?.message ?? 'Operation failed.';
-				alert(msg);
+				// alert(msg);
 			}
 		};
 </script>

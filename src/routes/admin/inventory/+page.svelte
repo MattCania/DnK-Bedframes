@@ -22,7 +22,7 @@
 		}
 
 		if (!f.type.startsWith('image/')) {
-			alert('Please select an image file.');
+			// alert('Please select an image file.');
 			target.value = '';
 			return;
 		}

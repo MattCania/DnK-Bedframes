@@ -47,7 +47,7 @@
 		const file = input.files?.[0];
 		if (!file) return;
 		if (!file.type.startsWith('image/')) {
-			alert('Please select an image file.');
+			('Please select an image file.');
 			return;
 		}
 		const reader = new FileReader();
@@ -108,7 +108,7 @@
 			cancelEdit();
 		} catch (e) {
 			console.error(e);
-			alert((e as Error).message || 'Failed to save');
+			// alert((e as Error).message || 'Failed to save');
 		} finally {
 			busy = false;
 		}
@@ -129,7 +129,7 @@
 			}
 		} catch (e) {
 			console.error(e);
-			alert((e as Error).message || 'Failed to delete');
+			// alert((e as Error).message || 'Failed to delete');
 		} finally {
 			deletingId = null;
 		}
