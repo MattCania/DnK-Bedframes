@@ -119,7 +119,7 @@
 				<Checkbox bind:checked={showPassword}>Show Password</Checkbox>
 
 				<a
-					href="/verify-email"
+					href="/password-reset"
 					class="ms-auto text-sm text-zinc-700 hover:underline dark:text-zinc-500"
 				>
 					Forgot password?
