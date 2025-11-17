@@ -1,473 +1,324 @@
 <script lang="ts">
-	import { onDestroy, tick } from 'svelte';
-	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
-	import { Card, Button, Label, Input, Checkbox, Radio, Modal, Alert } from 'flowbite-svelte';
-	import type { ActionData } from './$types';
-	import Footer from '../../components/Footer.svelte';
+	import { onMount } from 'svelte';
 
-	export let form: ActionData;
-
-	let formData = {
-		email: form?.data?.email || '',
-		contactNumber: form?.data?.contactNumber || '',
-		firstName: form?.data?.firstName || '',
-		middleName: form?.data?.middleName || '',
-		lastName: form?.data?.lastName || '',
-		address: form?.data?.address || '',
-		password: '',
-		confirmPassword: '',
-		birthday: form?.data?.birthday || '',
-		gender: form?.data?.gender || ''
+	export let data: {
+		items: Array<{
+			id: number;
+			product_id: number | null;
+			name: string | null;
+			price: number;
+			quantity: number;
+			colors: string[];
+			category: string | null;
+			image: string | null;
+		}>;
+		itemsTotal: number;
+		shippingFee: number;
+		totalAmount: number;
+		estimatedDelivery: string;
+		account: any;
 	};
 
-	let showPassword = false;
-	let isSubmitting = false;
+	const items = data.items ?? [];
+	const itemsTotal = data.itemsTotal ?? 0;
+	const estimatedDelivery = data.estimatedDelivery ?? '';
+	const account = data.account;
 
-	let mapModalOpen = false;
-	let leafletLoaded = false;
-	let L: any;
-	let map: any;
-	let marker: any = null;
-	let previewAddress = '';
-	let previewLat: number | null = null;
-	let previewLng: number | null = null;
+	const fullname = account ? `${account.firstname ?? ''} ${account.lastname ?? ''}`.trim() : '';
 
-	const MAP_CONTAINER_ID = 'registrationAddressMap';
-	const DEFAULT_CENTER = [14.5995, 120.9842];
+	const STORE_LAT = 14.76741;
+	const STORE_LNG = 121.04385;
+	const STORE_ADDRESS =
+		'Zabarte Road, Barangay 175, Zone 15, Camarin, District 1, Caloocan, Northern Manila District, Metro Manila, 1428, Philippines';
 
-	async function ensureLeafletLoaded() {
-		if (!leafletLoaded) {
-			L = (await import('leaflet')).default ?? (await import('leaflet'));
-			await import('leaflet/dist/leaflet.css');
+	const BASE_FEE = 200;
+	const RATE_PER_KM = 15;
+	// const FREE_SHIPPING_THRESHOLD = 2000;
 
-			// Fix default marker icons in bundlers
-			// @ts-ignore
-			delete L.Icon.Default.prototype._getIconUrl;
-			L.Icon.Default.mergeOptions({
-				iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-				iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-				shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png'
-			});
+	let calculatedDistance: number | null = null;
+	let calculatedShippingFee = data.shippingFee ?? 0;
+	let calculatedTotal = data.totalAmount ?? 0;
+	let isCalculating = false;
+	let calculationError = '';
 
-			leafletLoaded = true;
-		}
-	}
+	function parseCoordinates(address: string | null): { lat: number; lng: number } | null {
+		if (!address) return null;
 
-	async function initMap() {
-		if (!leafletLoaded) await ensureLeafletLoaded();
-
-		if (map) {
-			try {
-				map.off();
-				map.remove();
-				map = null;
-				marker = null;
-			} catch (e) {
-				console.error('Error removing map:', e);
-			}
+		const coordMatch = address.match(/\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s*$/);
+		if (coordMatch) {
+			return {
+				lat: parseFloat(coordMatch[1]),
+				lng: parseFloat(coordMatch[2])
+			};
 		}
 
-		const container = document.getElementById(MAP_CONTAINER_ID);
-		if (!container) {
-			console.error('Map container not found');
-			return;
-		}
-
-		map = L.map(MAP_CONTAINER_ID, {
-			center: DEFAULT_CENTER,
-			zoom: 11,
-			zoomControl: true
-		});
-
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			maxZoom: 19,
-			attribution: '&copy; OpenStreetMap contributors'
-		}).addTo(map);
-
-		map.on('click', async (e: any) => {
-			const { lat, lng } = e.latlng;
-
-			if (marker) {
-				marker.setLatLng([lat, lng]);
-			} else {
-				marker = L.marker([lat, lng]).addTo(map);
-			}
-
-			await reverseGeocode(lat, lng);
-			const popupContent = `<div style="max-width:220px;font-size:0.9rem">
-				<strong>Selected:</strong><br/>
-				${escapeHtml(previewAddress || `${lat.toFixed(5)}, ${lng.toFixed(5)}`)}
-				<br/><small>${lat.toFixed(5)}, ${lng.toFixed(5)}</small>
-			</div>`;
-			marker.bindPopup(popupContent).openPopup();
-		});
-
-		setTimeout(() => {
-			if (map) {
-				map.invalidateSize();
-			}
-		}, 100);
-	}
-
-	async function reverseGeocode(lat: number, lng: number) {
-		previewLat = lat;
-		previewLng = lng;
-		previewAddress = '';
-		try {
-			const url = new URL('https://nominatim.openstreetmap.org/reverse');
-			url.searchParams.set('lat', String(lat));
-			url.searchParams.set('lon', String(lng));
-			url.searchParams.set('format', 'json');
-			url.searchParams.set('addressdetails', '1');
-			url.searchParams.set('zoom', '18');
-
-			const res = await fetch(url.toString(), {
-				headers: { Accept: 'application/json' }
-			});
-			if (!res.ok) throw new Error('Reverse geocoding failed');
-			const json = await res.json();
-
-			let display = json.display_name ?? '';
-			if (!display && json.address) {
-				const a = json.address;
-				const parts = [
-					a.road || a.pedestrian || a.cycleway || a.footway || a.neighbourhood,
-					a.suburb || a.village || a.town || a.city_district,
-					a.city || a.county,
-					a.state,
-					a.country
-				].filter(Boolean);
-				display = parts.join(', ');
-			}
-
-			previewAddress = display || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-		} catch (err) {
-			console.error('Reverse geocode error', err);
-			previewAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-		}
-	}
-
-	async function openMapPicker() {
-		mapModalOpen = true;
-
-		await tick();
-		await new Promise((resolve) => setTimeout(resolve, 150));
-
-		await ensureLeafletLoaded();
-		await initMap();
-
-		await new Promise((resolve) => setTimeout(resolve, 200));
-
-		if (map) {
-			map.invalidateSize();
-
-			const coords = parseCoordsFromAddress(formData.address);
-			if (coords) {
-				const [lat, lng] = coords;
-				map.setView([lat, lng], 14);
-				if (marker) {
-					marker.setLatLng([lat, lng]);
-				} else {
-					marker = L.marker([lat, lng]).addTo(map);
-				}
-				await reverseGeocode(lat, lng);
-			}
-		}
-	}
-
-	function closeMapPicker() {
-		mapModalOpen = false;
-	}
-
-	function applySelectedAddress() {
-		if (!previewAddress || previewLat == null || previewLng == null) return;
-		formData.address = `${previewAddress} (${previewLat.toFixed(5)}, ${previewLng.toFixed(5)})`;
-		mapModalOpen = false;
-	}
-
-	function parseCoordsFromAddress(addr: string) {
-		if (!addr) return null;
-		const m = addr.match(/\((-?\d+\.\d+),\s*(-?\d+\.\d+)\)\s*$/);
-		if (m) {
-			return [parseFloat(m[1]), parseFloat(m[2])];
-		}
 		return null;
 	}
 
-	function escapeHtml(str: string) {
-		if (!str) return '';
-		return String(str)
-			.replaceAll('&', '&amp;')
-			.replaceAll('<', '&lt;')
-			.replaceAll('>', '&gt;')
-			.replaceAll('"', '&quot;')
-			.replaceAll("'", '&#039;');
+	function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+		const R = 6371;
+		const dLat = toRad(lat2 - lat1);
+		const dLon = toRad(lon2 - lon1);
+
+		const a =
+			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		const distance = R * c; 
+
+		return distance;
 	}
 
-	onDestroy(() => {
+	function toRad(degrees: number): number {
+		return degrees * (Math.PI / 180);
+	}
+
+	function calculateShippingFee(distanceKm: number): number {
+		// if (itemsTotal >= FREE_SHIPPING_THRESHOLD) {
+		// 	return 0;
+		// }
+		const fee = BASE_FEE + distanceKm * RATE_PER_KM;
+		return Math.round(fee * 100) / 100;
+	}
+
+	function performCalculation() {
+		isCalculating = true;
+		calculationError = '';
+
 		try {
-			if (map) {
-				map.off();
-				map.remove();
-				map = null;
+			const customerCoords = parseCoordinates(account?.address);
+
+			if (!customerCoords) {
+				calculationError =
+					'Please set your delivery address with coordinates in your account settings.';
+				calculatedDistance = null;
+				calculatedShippingFee = data.shippingFee ?? 50;
+				calculatedTotal = itemsTotal + calculatedShippingFee;
+				return;
 			}
-		} catch {
-			/* ignore */
+
+			const distance = calculateDistance(
+				STORE_LAT,
+				STORE_LNG,
+				customerCoords.lat,
+				customerCoords.lng
+			);
+
+			calculatedDistance = Math.round(distance * 100) / 100;
+			calculatedShippingFee = calculateShippingFee(distance);
+			calculatedTotal = itemsTotal + calculatedShippingFee;
+		} catch (err) {
+			console.error('Distance calculation error:', err);
+			calculationError = 'Error calculating distance. Using default shipping fee.';
+			calculatedShippingFee = data.shippingFee ?? 50;
+			calculatedTotal = itemsTotal + calculatedShippingFee;
+		} finally {
+			isCalculating = false;
 		}
+	}
+
+	onMount(() => {
+		performCalculation();
 	});
+
+	$: if (account?.address || itemsTotal) {
+		performCalculation();
+	}
 </script>
 
-<section class="mx-auto my-4 mt-64 md:mt-40 flex flex-col justify-center items-center min-h-screen w-full pb-20 p-8">
-	<Card class="flex w-full md:w-1/2 max-w-3xl h-fit p-4 md:p-8 mx-auto">
-		<form
-			class="flex flex-col space-y-6"
-			method="POST"
-			action="?/register"
-			use:enhance={() => {
-				isSubmitting = true;
-				return async ({ update, result }) => {
-					// Allow SvelteKit to sync the form state first
-					await update();
+<section class="min-h-screen bg-gray-50 pt-24">
+	<div class="mx-auto max-w-6xl px-4 md:px-6">
+		<h1 class="mb-6 text-center text-3xl font-bold text-gray-900">Checkout</h1>
 
-					isSubmitting = false;
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+			<div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+				<h2 class="mb-4 text-xl font-semibold text-gray-900">Delivery Details:</h2>
 
-					// ✅ If the server action completed successfully
-					if (result?.type === 'success') {
-						// Clear all bound fields
-						formData = {
-							email: '',
-							contactNumber: '',
-							firstName: '',
-							middleName: '',
-							lastName: '',
-							address: '',
-							password: '',
-							confirmPassword: '',
-							birthday: '',
-							gender: ''
-						};
-
-						// Optionally, also clear the native form element values
-						// (helps if you have any unbound inputs)
-						const el = document.activeElement as HTMLElement | null;
-						(el?.closest('form') as HTMLFormElement | null)?.reset();
-
-						// Redirect to login
-						goto('/login');
-					}
-				};
-			}}
-		>
-			<h3 class="mx-auto text-2xl font-medium text-gray-900 dark:text-white">Create Your Account</h3>
-
-			{#if form?.errors?.general}
-				<Alert color="red" class="mb-4">
-					<span class="font-medium">Error!</span> {form.errors.general}
-				</Alert>
-			{/if}
-
-			<Label class="space-y-2">
-				<span>Email Address *</span>
-				<Input
-					type="email"
-					name="email"
-					bind:value={formData.email}
-					placeholder="juan@example.com"
-					required
-					color={form?.errors?.email ? 'red' : 'base'}
-				/>
-				{#if form?.errors?.email}
-					<p class="text-sm text-red-600 dark:text-red-500">{form.errors.email}</p>
-				{/if}
-			</Label>
-
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<Label class="space-y-2">
-					<span>First Name *</span>
-					<Input
-						type="text"
-						name="firstName"
-						bind:value={formData.firstName}
-						placeholder="Juan"
-						required
-						color={form?.errors?.firstName ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.firstName}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.firstName}</p>
-					{/if}
-				</Label>
-
-				<Label class="space-y-2">
-					<span>Middle Name</span>
-					<Input type="text" name="middleName" bind:value={formData.middleName} placeholder="Lopez" />
-				</Label>
-			</div>
-
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<Label class="space-y-2">
-					<span>Last Name *</span>
-					<Input
-						type="text"
-						name="lastName"
-						bind:value={formData.lastName}
-						placeholder="Dela Cruz"
-						required
-						color={form?.errors?.lastName ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.lastName}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.lastName}</p>
-					{/if}
-				</Label>
-
-				<Label class="space-y-2">
-					<span>Contact Number *</span>
-					<Input
-						type="tel"
-						name="contactNumber"
-						bind:value={formData.contactNumber}
-						placeholder="+63 912 345 6789"
-						required
-						color={form?.errors?.contactNumber ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.contactNumber}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.contactNumber}</p>
-					{/if}
-				</Label>
-			</div>
-
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<Label class="space-y-2">
-					<span>Birthday *</span>
-					<Input
-						type="date"
-						name="birthday"
-						bind:value={formData.birthday}
-						required
-						color={form?.errors?.birthday ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.birthday}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.birthday}</p>
-					{/if}
-				</Label>
-
-				<Label class="space-y-2">
-					<span>Gender *</span>
-					<div class="mt-2 flex gap-6">
-						<Radio name="gender" value="male" bind:group={formData.gender} required>Male</Radio>
-						<Radio name="gender" value="female" bind:group={formData.gender}>Female</Radio>
+				<div class="space-y-3 text-sm">
+					<div>
+						<div class="text-gray-500">Customer:</div>
+						<div class="font-medium text-gray-900">{fullname || '—'}</div>
 					</div>
-					{#if form?.errors?.gender}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.gender}</p>
-					{/if}
-				</Label>
-			</div>
 
-			<Label class="space-y-2">
-				<span>Address *</span>
-				<div class="flex gap-2">
-					<textarea
-						name="address"
-						bind:value={formData.address}
-						placeholder="Enter your address or pick from map"
-						rows="3"
-						class="w-full rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none border {form?.errors?.address ? 'border-red-500' : 'border-gray-300'}"
-						required
-					></textarea>
-					<Button size="sm" color="blue" type="button" onclick={openMapPicker}>Pick from Map</Button>
+					<div class="flex items-start justify-between gap-3">
+						<div>
+							<div class="text-gray-500">Address:</div>
+							<div class="max-w-[36ch] break-words text-gray-900">{account?.address ?? '—'}</div>
+						</div>
+						<a href="/account" class="text-blue-600 hover:underline">Change</a>
+					</div>
+
+					{#if calculatedDistance !== null}
+						<div class="rounded-md border border-blue-100 bg-blue-50 p-3">
+							<div class="mb-1 font-medium text-gray-700">📍 Delivery Distance</div>
+							<div class="font-semibold text-gray-900">{calculatedDistance} km</div>
+							<div class="mt-1 text-xs text-gray-600">From: Zabarte Road, Camarin, Caloocan</div>
+						</div>
+					{/if}
+
+					{#if calculationError}
+						<div
+							class="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800"
+						>
+							⚠️ {calculationError}
+						</div>
+					{/if}
+
+					<div>
+						<div class="text-gray-500">Payment Method:</div>
+						<label class="mt-1 inline-flex items-center gap-2 text-gray-900">
+							<input
+								type="radio"
+								checked
+								disabled
+								class="h-4 w-4 border-gray-300 text-green-600 focus:ring-green-600"
+							/>
+							<span>Cash on Delivery</span>
+						</label>
+					</div>
+
+					<div class="pt-2">
+						<div class="mb-2 text-gray-900">Total:</div>
+						<div class="space-y-2 rounded-md border border-gray-100 p-3">
+							<div class="flex items-center justify-between">
+								<span class="text-gray-600">Items Total:</span>
+								<span class="font-semibold text-green-700"
+									>PHP {itemsTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span
+								>
+							</div>
+							<div class="flex items-center justify-between">
+								<div class="flex flex-col">
+									<span class="text-gray-600">Shipping Fee:</span>
+									{#if calculatedDistance !== null}
+										<span class="text-xs text-gray-500">
+											{#if calculatedShippingFee === 0}
+												🎉 Free shipping!
+											{:else}
+												₱{BASE_FEE} base + ₱{RATE_PER_KM}/km × {calculatedDistance}km
+											{/if}
+										</span>
+									{/if}
+								</div>
+								<span class="font-semibold text-green-700">
+									{#if isCalculating}
+										<span class="text-gray-400">Calculating...</span>
+									{:else if calculatedShippingFee === 0}
+										<span class="text-green-600">FREE</span>
+									{:else}
+										PHP {calculatedShippingFee.toLocaleString('en-PH', {
+											minimumFractionDigits: 2
+										})}
+									{/if}
+								</span>
+							</div>
+
+							<!-- {#if itemsTotal < FREE_SHIPPING_THRESHOLD && FREE_SHIPPING_THRESHOLD - itemsTotal < 500}
+								<div class="text-xs text-blue-600">
+									Add PHP {(FREE_SHIPPING_THRESHOLD - itemsTotal).toFixed(2)} more for free shipping!
+								</div>
+							{/if} -->
+
+							<hr />
+							<div class="flex items-center justify-between text-base">
+								<span class="font-medium text-gray-900">Total Amount:</span>
+								<span class="font-bold text-green-700">
+									{#if isCalculating}
+										<span class="text-gray-400">...</span>
+									{:else}
+										PHP {calculatedTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+									{/if}
+								</span>
+							</div>
+						</div>
+					</div>
+
+					<div class="pt-3 text-xs text-gray-600">Estimated Delivery Date: {estimatedDelivery}</div>
 				</div>
-				{#if form?.errors?.address}
-					<p class="text-sm text-red-600 dark:text-red-500">{form.errors.address}</p>
-				{/if}
-			</Label>
+			</div>
 
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				<Label class="space-y-2">
-					<span>Password *</span>
-					<Input
-						type={showPassword ? 'text' : 'password'}
-						name="password"
-						bind:value={formData.password}
-						placeholder="•••••"
-						required
-						color={form?.errors?.password ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.password}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.password}</p>
+			<div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+				<h2 class="mb-4 text-xl font-semibold text-gray-900">Orders:</h2>
+				<div class="space-y-4">
+					{#if items.length === 0}
+						<p class="text-gray-600">Your cart is empty.</p>
+					{:else}
+						{#each items as item}
+							<div
+								class="flex items-center justify-between gap-4 rounded-md border border-gray-100 p-3"
+							>
+								<div class="flex items-center gap-3">
+									{#if item.image}
+										<img
+											src={item.image}
+											alt={item.name ?? ''}
+											class="h-16 w-16 rounded object-cover"
+										/>
+									{/if}
+									<div>
+										<div class="font-medium text-gray-900">{item.name}</div>
+										<div class="text-sm text-gray-500">{item.category}</div>
+										<div class="mt-1 text-sm text-gray-700">Quantity: {item.quantity}</div>
+										<div class="text-sm text-gray-700">Color: {item.colors?.[0] ?? '—'}</div>
+									</div>
+								</div>
+								<div class="text-right font-semibold text-green-700">
+									PHP {(item.price * item.quantity).toLocaleString('en-PH', {
+										minimumFractionDigits: 2
+									})}
+								</div>
+							</div>
+						{/each}
 					{/if}
-				</Label>
-
-				<Label class="space-y-2">
-					<span>Confirm Password *</span>
-					<Input
-						type={showPassword ? 'text' : 'password'}
-						name="confirmPassword"
-						bind:value={formData.confirmPassword}
-						placeholder="•••••"
-						required
-						color={form?.errors?.confirmPassword ? 'red' : 'base'}
-					/>
-					{#if form?.errors?.confirmPassword}
-						<p class="text-sm text-red-600 dark:text-red-500">{form.errors.confirmPassword}</p>
-					{/if}
-				</Label>
+				</div>
 			</div>
-
-			<div class="flex items-start">
-				<Checkbox bind:checked={showPassword}>Show Password</Checkbox>
-			</div>
-
-			<Button type="submit" class="w-full" disabled={isSubmitting}>
-				{isSubmitting ? 'Creating Account...' : 'Register'}
-			</Button>
-
-			<div class="text-center text-sm text-gray-600">
-				Already have an account?
-				<a href="/login" class="text-blue-600 hover:underline">Sign in</a>
-			</div>
-		</form>
-	</Card>
-</section>
-
-<Modal bind:open={mapModalOpen} size="xl" dismissable={false}>
-	<div class="p-4">
-		<h3 class="text-lg font-semibold mb-2">Select Your Location</h3>
-		<p class="text-sm text-gray-600 mb-3">Click on the map to drop a pin at your address. Then press "Use this location".</p>
-
-		<div id={MAP_CONTAINER_ID} style="height: 400px; width: 100%;" class="rounded-lg border border-gray-300"></div>
-
-		<div class="mt-3">
-			<p class="text-sm text-gray-700"><strong>Preview:</strong></p>
-			{#if previewAddress}
-				<p class="text-sm text-gray-800">{previewAddress}</p>
-				<p class="text-xs text-gray-500">{previewLat?.toFixed(5)}, {previewLng?.toFixed(5)}</p>
-			{:else}
-				<p class="text-sm text-gray-500">Click on the map to select a point.</p>
-			{/if}
 		</div>
 
-		<div class="mt-4 flex justify-end gap-2">
-			<Button color="light" onclick={closeMapPicker}>Cancel</Button>
-			<Button color="blue" onclick={applySelectedAddress} disabled={!previewAddress}>Use this location</Button>
+		<div class="mt-6 flex justify-center">
+			<form method="POST" action="?/purchase">
+				<input type="hidden" name="shipping_fee" value={calculatedShippingFee} />
+				<input type="hidden" name="distance_km" value={calculatedDistance ?? 0} />
+				<input type="hidden" name="total_amount" value={calculatedTotal} />
+
+				<input
+					type="hidden"
+					name="product_ids"
+					value={JSON.stringify(items.map((i) => i.product_id).filter((id) => id != null))}
+				/>
+				<input
+					type="hidden"
+					name="quantities"
+					value={JSON.stringify(items.map((i) => i.quantity))}
+				/>
+				<input
+					type="hidden"
+					name="colors"
+					value={JSON.stringify(items.map((i) => i.colors?.[0] ?? null))}
+				/>
+				<input type="hidden" name="items_total" value={itemsTotal} />
+
+				<button
+					type="submit"
+					class="rounded-md bg-blue-600 px-8 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+					disabled={items.length === 0 || isCalculating || !!calculationError}
+				>
+					{#if isCalculating}
+						Calculating...
+					{:else}
+						Purchase (PHP {calculatedTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })})
+					{/if}
+				</button>
+			</form>
+		</div>
+
+		<div class="mt-8 mb-6 rounded-lg bg-gray-100 p-4 text-sm text-gray-700">
+			<h3 class="mb-2 font-semibold">📦 Shipping Information</h3>
+			<ul class="space-y-1 text-xs">
+				<li>• Base shipping fee: PHP {BASE_FEE}</li>
+				<li>• Additional: PHP {RATE_PER_KM} per kilometer</li>
+				<!-- <li>• Free shipping on orders PHP {FREE_SHIPPING_THRESHOLD.toLocaleString('en-PH')} and above</li> -->
+				<li>• Distance calculated from: Zabarte Road, Camarin, Caloocan</li>
+			</ul>
 		</div>
 	</div>
-</Modal>
-
-<Footer />
-
-<style>
-	:global(.leaflet-container) {
-		width: 100%;
-		height: 100%;
-		z-index: 1;
-	}
-
-	:global(.leaflet-marker-icon),
-	:global(.leaflet-marker-shadow) {
-		filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
-	}
-
-	#registrationAddressMap {
-		min-height: 400px;
-	}
-</style>
+</section>

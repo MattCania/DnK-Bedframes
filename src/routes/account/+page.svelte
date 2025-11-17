@@ -296,7 +296,7 @@
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-bold text-gray-900">Profile Information</h2>
 				{#if !editMode}
-					<Button onclick={handleEdit} color="blue" size="sm">Edit Profile</Button>
+					<Button onclick={handleEdit} color="red" size="sm">Edit Profile</Button>
 				{/if}
 			</div>
 

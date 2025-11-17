@@ -23,7 +23,7 @@ export const genderEnum = pgEnum('gender_enum', ['male', 'female']);
 export const roleEnum = pgEnum('role_enum', ['admin', 'user', 'manager']);
 export const departmentEnum = pgEnum('department_enum', ['production', 'management', 'staff']);
 export const categoryEnum = pgEnum('category_enum', ['twin', 'full', 'queen', 'king']);
-export const statusEnum = pgEnum('status', ['pending', 'cancelled', 'completed', 'delivery']);
+export const statusEnum = pgEnum('status_enum', ['pending', 'cancelled', 'completed', 'delivery']);
 
 //  Tables
 export const accounts = pgTable('accounts', {

@@ -43,6 +43,13 @@
       "when": 1762348233841,
       "tag": "0007_violet_fallen_one",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1762596723455,
+      "tag": "0008_empty_magdalene",
+      "breakpoints": true
     }
   ]
 }

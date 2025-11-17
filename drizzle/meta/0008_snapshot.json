@@ -1,6 +1,6 @@
 {
-  "id": "1d63641b-1ee1-49e3-9a1e-b8bbea9e7adb",
-  "prevId": "316057d0-3f25-4347-b8d7-922e502ee286",
+  "id": "3ff6ca5a-9154-405d-8d99-abfd167754fe",
+  "prevId": "1d63641b-1ee1-49e3-9a1e-b8bbea9e7adb",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -477,7 +477,7 @@
         },
         "status": {
           "name": "status",
-          "type": "status",
+          "type": "status_enum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -1039,8 +1039,8 @@
         "manager"
       ]
     },
-    "public.status": {
-      "name": "status",
+    "public.status_enum": {
+      "name": "status_enum",
       "schema": "public",
       "values": [
         "pending",

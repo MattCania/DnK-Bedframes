@@ -2,7 +2,7 @@
 	import { Button, Input, Select, Rating } from 'flowbite-svelte';
 	import Footer from '../../../components/Footer.svelte';
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, goto } from '$app/navigation'; // ✅ added goto for redirect
 	import { incCartCount } from '$lib/stores/cart';
 
 	export let data: {
@@ -11,8 +11,8 @@
 		ratingStats: { average: number; total: number; counts: Record<number, number> };
 	};
 
-	const product = data.product as any;
-	const reviews: Array<any> = data.reviews || [];
+	const product = data.product;
+	const reviews = data.reviews || [];
 	const stats = data.ratingStats || {
 		average: 0,
 		total: 0,
@@ -25,6 +25,7 @@
 	let quantity = 1;
 	let selectedColor = product.colors?.[0] || 'Black';
 	let selectedSize = product.sizes?.[0] || 'queen';
+	let submitAction = 'add'; // ✅ to detect which button was clicked
 
 	const colorOptions = product.colors.map((c: string) => ({ value: c, name: c }));
 	const sizeOptions = (Array.isArray(product.sizes) ? product.sizes : [product.sizes]).map(
@@ -37,17 +38,22 @@
 	const onEnhance = (_event: any) => {
 		statusMessage = null;
 		statusError = null;
+
 		return async ({ result }: any) => {
 			if (result.type === 'success') {
 				statusMessage = 'Added to cart.';
 				const payload = await result.data;
 				const added = Number(payload?.added ?? quantity ?? 1) || 1;
 				incCartCount(added);
-				void invalidateAll();
+
+				if (submitAction === 'buy') {
+					goto('/checkout');
+				} else {
+					void invalidateAll();
+				}
 			} else if (result.type === 'failure') {
 				const data = await result.data;
 				statusError = data?.message ?? 'Failed to add to cart.';
-			} else if (result.type === 'redirect') {
 			}
 		};
 	};
@@ -148,63 +154,53 @@
 				</p>
 
 				<form method="POST" use:enhance={onEnhance} action="?/add-to-cart" class="space-y-4">
-					<input type="hidden" name="product_id" value={product.id} />
+	<input type="hidden" name="product_id" value={product.id} />
+	<input type="hidden" name="action_type" value={submitAction} /> <!-- ✅ track which button -->
 
-					<div class="mb-4">
-						<label for="color" class="mb-2 block text-sm font-medium text-gray-700">Color</label>
-						<Select
-							id="color"
-							name="color"
-							bind:value={selectedColor}
-							items={colorOptions}
-							class="w-full"
-						/>
-					</div>
+	<!-- Color -->
+	<div class="mb-4">
+		<label for="color" class="mb-2 block text-sm font-medium text-gray-700">Color</label>
+		<Select id="color" name="color" bind:value={selectedColor} items={colorOptions} class="w-full" />
+	</div>
 
-					<div class="mb-4">
-						<label for="quantity" class="mb-2 block text-sm font-medium text-gray-700"
-							>Quantity</label
-						>
-						<Input
-							id="quantity"
-							name="quantity"
-							type="number"
-							min="1"
-							max={product.stock}
-							bind:value={quantity}
-							class="w-full"
-						/>
-					</div>
+	<!-- Quantity -->
+	<div class="mb-4">
+		<label for="quantity" class="mb-2 block text-sm font-medium text-gray-700">Quantity</label>
+		<Input id="quantity" name="quantity" type="number" min="1" max={product.stock} bind:value={quantity} class="w-full" />
+	</div>
 
-					<div class="mb-6">
-						<label for="size" class="mb-2 block text-sm font-medium text-gray-700">Size</label>
-						<Select
-							id="size"
-							name="size"
-							bind:value={selectedSize}
-							items={sizeOptions}
-							class="w-full"
-						/>
-					</div>
+	<!-- Size -->
+	<div class="mb-6">
+		<label for="size" class="mb-2 block text-sm font-medium text-gray-700">Size</label>
+		<Select id="size" name="size" bind:value={selectedSize} items={sizeOptions} class="w-full" />
+	</div>
 
-					<div class="space-y-3">
-						<Button
-							type="submit"
-							color="blue"
-							class="w-full"
-							disabled={!product.stock || product.stock <= 0}>Add to Cart</Button
-						>
-						<Button type="submit" color="green" class="w-full" formaction="?/buyNow">Buy Now</Button
-						>
-					</div>
+	<!-- Buttons -->
+	<div class="space-y-3">
+		<Button
+			type="submit"
+			color="blue"
+			class="w-full"
+			onclick={() => (submitAction = 'add')}
+			disabled={!product.stock || product.stock <= 0}
+			>Add to Cart</Button
+		>
+		<Button
+			type="submit"
+			color="green"
+			class="w-full"
+			onclick={() => (submitAction = 'buy')}
+			>Buy Now</Button
+		>
+	</div>
 
-					{#if statusMessage}
-						<p class="text-sm text-green-700">{statusMessage}</p>
-					{/if}
-					{#if statusError}
-						<p class="text-sm text-red-600">{statusError}</p>
-					{/if}
-				</form>
+	{#if statusMessage}
+		<p class="text-sm text-green-700">{statusMessage}</p>
+	{/if}
+	{#if statusError}
+		<p class="text-sm text-red-600">{statusError}</p>
+	{/if}
+</form>
 			</div>
 		</div>
 	</div>
